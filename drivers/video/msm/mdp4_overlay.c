@@ -2011,7 +2011,7 @@ static int mdp4_overlay_is_rgb_type(int format)
 
 static uint32 mdp4_overlay_get_perf_level(struct mdp_overlay *req)
 {
-	int is_fg;
+	int is_fg = 0, i, cnt;
 
 	if (req->is_fg && ((req->alpha & 0x0ff) == 0xff))
 		is_fg = 1;
