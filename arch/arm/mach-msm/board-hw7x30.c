@@ -142,7 +142,7 @@ struct regulator *vreg_gp4 = NULL;
 /*DTS2011082405478 zhudengkui 20110913 begin */
 #include "board-msm7x30-regulator.h"
 
-#define MSM_PMEM_SF_SIZE	0x2400000
+#define MSM_PMEM_SF_SIZE	0x1800000  //0x2400000
 /* DTS2011082405478 zhudengkui 20110913 end>*/
 
 #ifdef CONFIG_HUAWEI_KERNEL
@@ -153,16 +153,21 @@ struct regulator *vreg_gp4 = NULL;
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MSM_FB_SIZE            0x780000
 #else
-#define MSM_FB_SIZE            0x500000
+#define MSM_FB_SIZE            0x465000   //0x500000
 #endif
 
 /*add dsp memory space for video*/
 /*add dsp memory space for video*/
-#define MSM_PMEM_ADSP_SIZE      0x2400000
+#define MSM_PMEM_ADSP_SIZE      0x2000000  //0x2400000
 
 #define MSM_FLUID_PMEM_ADSP_SIZE	0x2800000
 #define PMEM_KERNEL_EBI0_SIZE   0x600000
 #define MSM_PMEM_AUDIO_SIZE     0x200000
+
+#ifdef CONFIG_FB_MSM_DEFAULT_DEPTH_RGB565
+#undef MSM_PMEM_SF_SIZE
+#define MSM_PMEM_SF_SIZE        0x0c00000
+#endif
 
 #define PMIC_GPIO_INT		27
 #define PMIC_VREG_WLAN_LEVEL	2900
@@ -1355,6 +1360,12 @@ static struct i2c_board_info msm_camera_boardinfo[] __initdata = {
 		I2C_BOARD_INFO("mt9p017", 0x6D),//i2c real addr is 36.
 	},
 #endif
+#ifdef CONFIG_HUAWEI_SENSOR_S5K4E1GX_P
+        {
+                I2C_BOARD_INFO("s5k4e1gx_p", 0x30 >> 1),
+        },
+#endif 
+
 
 };
 
@@ -1801,6 +1812,37 @@ static struct platform_device msm_camera_sensor_s5k4e1 = {
 	},
 };
 #endif
+
+#ifdef CONFIG_HUAWEI_SENSOR_S5K4E1GX_P
+static struct msm_camera_sensor_flash_data flash_s5k4e1gx_p = {
+        .flash_type = MSM_CAMERA_FLASH_LED,
+        .flash_src  = &msm_flash_src_pwm
+};
+
+static struct msm_camera_sensor_info msm_camera_sensor_s5k4e1gx_p_data = {
+        .sensor_name    = "s5k4e1gx_p",
+        .sensor_reset   = 55,
+        //.vreg_num     = ARRAY_SIZE(sensor_vreg_array),
+        .vreg_enable_func = msm_camera_vreg_config,
+        .vreg_disable_func = msm_camera_vreg_config,
+        .slave_sensor = 0,
+        .sensor_pwd     = 0,
+        .vcm_pwd        = 56,
+        .vcm_enable     = 1,
+        .pdata          = &msm_camera_device_data,
+        .resource       = msm_camera_resources,
+        .flash_data     = &flash_s5k4e1gx_p,
+        .num_resources  = ARRAY_SIZE(msm_camera_resources),
+};
+
+static struct platform_device msm_camera_sensor_s5k4e1gx_p = {
+        .name = "msm_camera_s5k4e1gx_p",
+        .dev = {
+                .platform_data = &msm_camera_sensor_s5k4e1gx_p_data,
+        },
+};
+#endif
+
 
 #ifdef CONFIG_HUAWEI_SENSOR_MT9P017
 static struct msm_camera_sensor_flash_data flash_mt9p017 = {
@@ -6853,6 +6895,11 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_HUAWEI_SENSOR_S5K4E1
 	&msm_camera_sensor_s5k4e1,
 #endif
+
+#ifdef CONFIG_HUAWEI_SENSOR_S5K4E1GX_P
+        &msm_camera_sensor_s5k4e1gx_p,
+#endif
+
 #ifdef CONFIG_HUAWEI_SENSOR_MT9P017
 	&msm_camera_sensor_mt9p017,
 #endif
@@ -7801,7 +7848,7 @@ static struct mmc_platform_data msm7x30_sdc4_data = {
 #endif
 	.msmsdcc_fmin	= 144000,
 	.msmsdcc_fmid	= 24576000,
- * we modified the max value of the msmsdcc_fmax
+/* we modified the max value of the msmsdcc_fmax
  * to slow down the max value of the clock of the
  * externel SD card slot
  * to make more compatible for more SD card */  

@@ -41,6 +41,8 @@ obj-$(CONFIG_HUAWEI_SENSOR_HIMAX0356) += himax0356.o
 
 obj-$(CONFIG_HUAWEI_CAMERA_SENSOR_S5K5CA) +=  s5k5ca.o s5k5ca_sunny_reg.o
 #/* don't compile s5k4e1gx.c and s5k4e1gx_reg.c any more */
+
+obj-$(CONFIG_HUAWEI_SENSOR_S5K4E1GX_P) += s5k4e1gx_p.o
 obj-$(CONFIG_HUAWEI_SENSOR_MT9P017) += mt9p017.o mt9p017_reg.o
 obj-$(CONFIG_HUAWEI_SENSOR_OV5647_SUNNY) += ov5647_sunny.o
 obj-$(CONFIG_HUAWEI_SENSOR_MT9E013) += mt9e013.o mt9e013_reg.o

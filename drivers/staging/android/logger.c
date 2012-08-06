@@ -615,8 +615,9 @@ static int __init init_log(struct logger_log *log)
 static int __init logger_init(void)
 {
 	int ret;
-/* for logcat control by nv */
-#ifdef CONFIG_HUAWEI_KERNEL
+    /* user log on/off must be controlled by NV */
+    /* usb rpc to replace pcom mechanism for fix reset issue */
+#if 0// CONFIG_HUAWEI_KERNEL
     u16 nv_item = LOG_CTL_INFO_ITEM;
     struct log_ctl ctl_info;
     int  rval = -1;

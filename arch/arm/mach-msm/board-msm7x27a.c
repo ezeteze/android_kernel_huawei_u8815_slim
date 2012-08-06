@@ -2587,11 +2587,9 @@ static void __init msm7x2x_init(void)
 	register_i2c_devices();
 #endif
 #if (defined(HUAWEI_BT_BLUEZ_VER30) || (!defined(CONFIG_HUAWEI_KERNEL)))
-	pr_info("k0 HUAWEI_BT_BLUEZ_VER30");
 	msm7627a_bt_power_init();
 #endif
 #if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
-	pr_info("k0 HUAWEI_BT_BTLA_VER30");
 	bt_bcm4330_power_init();
 #endif
 #ifndef CONFIG_HUAWEI_KERNEL
