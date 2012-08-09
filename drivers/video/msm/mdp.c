@@ -65,7 +65,7 @@ uint32 mdp_lcdc_underflow_cnt;
 
 boolean mdp_current_clk_on = FALSE;
 boolean mdp_is_in_isr = FALSE;
-
+struct vsync vsync_cntrl;
 /*
  * legacy mdp_in_processing is only for DMA2-MDDI
  * this applies to DMA2 block only
@@ -94,7 +94,8 @@ static struct workqueue_struct *mdp_pipe_ctrl_wq; /* mdp mdp pipe ctrl wq */
 static struct delayed_work mdp_pipe_ctrl_worker;
 
 static boolean mdp_suspended = FALSE;
-DEFINE_MUTEX(mdp_suspend_mutex);
+ulong mdp4_display_intf;
+static DEFINE_MUTEX(mdp_suspend_mutex);
 
 #ifdef CONFIG_FB_MSM_MDP40
 struct mdp_dma_data dma2_data;
@@ -1240,8 +1241,56 @@ error:
 }
 #endif
 
-/* Returns < 0 on error, 0 on timeout, or > 0 on successful wait */
+static void send_vsync_work(struct work_struct *work)
+{
+	char buf[64];
+	char *envp[2];
 
+	snprintf(buf, sizeof(buf), "VSYNC=%llu",
+			ktime_to_ns(vsync_cntrl.vsync_time));
+	envp[0] = buf;
+	envp[1] = NULL;
+	kobject_uevent_env(&(vsync_cntrl.dev->kobj), KOBJ_CHANGE, envp);
+}
+
+void mdp3_vsync_irq_enable(int intr, int term)
+{
+	unsigned long flag;
+
+	spin_lock_irqsave(&mdp_spin_lock, flag);
+	outp32(MDP_INTR_CLEAR, intr);
+	mdp_intr_mask |= intr;
+	outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+	mdp_enable_irq(term);
+	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+}
+
+void mdp3_vsync_irq_disable(int intr, int term)
+{
+	unsigned long flag;
+
+	spin_lock_irqsave(&mdp_spin_lock, flag);
+	/* required to synchronize between frame update and vsync
+	 * since both use the same LCDC_FRAME_START interrupt
+	 */
+	if (intr == LCDC_FRAME_START && dma2_data.waiting == FALSE) {
+		mdp_intr_mask &= ~intr;
+		outp32(MDP_INTR_ENABLE, mdp_intr_mask);
+	}
+	mdp_disable_irq(term);
+	spin_unlock_irqrestore(&mdp_spin_lock, flag);
+}
+
+#ifdef CONFIG_FB_MSM_MDP303
+/* vsync_isr_handler: Called from isr context*/
+static void vsync_isr_handler(void)
+{
+	vsync_cntrl.vsync_time = ktime_get();
+	schedule_work(&(vsync_cntrl.vsync_work));
+}
+#endif
+
+/* Returns < 0 on error, 0 on timeout, or > 0 on successful wait */
 int mdp_ppp_pipe_wait(void)
 {
 	int ret = 1;
@@ -1637,6 +1686,10 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 		if (!mdp_interrupt)
 			break;
 
+	/*Primary Vsync interrupt*/
+	if (mdp_interrupt & MDP_PRIM_RDPTR)
+		vsync_isr_handler();
+
 		/* DMA3 TV-Out Start */
 		if (mdp_interrupt & TV_OUT_DMA3_START) {
 			/* let's disable TV out interrupt */
@@ -1688,6 +1741,14 @@ irqreturn_t mdp_isr(int irq, void *ptr)
 			if (dma->waiting) {
 				dma->waiting = FALSE;
 				complete(&dma->comp);
+			}
+
+			if (vsync_cntrl.vsync_irq_enabled)
+				vsync_isr_handler();
+
+			if (!vsync_cntrl.vsync_irq_enabled && !(dma->waiting)) {
+				mdp_intr_mask &= ~LCDC_FRAME_START;
+				outp32(MDP_INTR_ENABLE, mdp_intr_mask);
 			}
 		}
 
@@ -1812,7 +1873,7 @@ static void mdp_drv_init(void)
 	for (i = 0; i < MDP_MAX_BLOCK; i++) {
 		atomic_set(&mdp_block_power_cnt[i], 0);
 	}
-
+	INIT_WORK(&(vsync_cntrl.vsync_work), send_vsync_work);
 #ifdef MSM_FB_ENABLE_DBGFS
 	{
 		struct dentry *root;
@@ -1915,7 +1976,24 @@ static int mdp_on(struct platform_device *pdev)
 	struct msm_fb_data_type *mfd;
 	mdp4_overlay_ctrl_db_reset();
 
-	mfd = platform_get_drvdata(pdev);
+#ifdef CONFIG_FB_MSM_MDP40
+	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
+	mdp_clk_ctrl(1);
+	mdp4_hw_init();
+	outpdw(MDP_BASE + 0x0038, mdp4_display_intf);
+	if (mfd->panel.type == MIPI_CMD_PANEL) {
+		mdp_vsync_cfg_regs(mfd, FALSE);
+		mdp4_dsi_cmd_on(pdev);
+	} else if (mfd->panel.type == MIPI_VIDEO_PANEL)
+		mdp4_dsi_video_on(pdev);
+	else if (mfd->panel.type == HDMI_PANEL ||
+			mfd->panel.type == LCDC_PANEL ||
+			mfd->panel.type == LVDS_PANEL)
+		mdp4_lcdc_on(pdev);
+
+	mdp_clk_ctrl(0);
+	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
+#endif
 
 	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
 	if (is_mdp4_hw_reset()) {
@@ -2478,6 +2556,7 @@ static int mdp_probe(struct platform_device *pdev)
 		}
 #else
 		mfd->dma = &dma2_data;
+		mfd->vsync_ctrl = mdp_dma_lcdc_vsync_ctrl;
 		spin_lock_irqsave(&mdp_spin_lock, flag);
 		mdp_intr_mask &= ~MDP_DMA_P_DONE;
 		outp32(MDP_INTR_ENABLE, mdp_intr_mask);
