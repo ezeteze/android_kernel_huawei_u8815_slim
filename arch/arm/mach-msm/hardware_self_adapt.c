@@ -1120,7 +1120,8 @@ hw_wifi_device_model get_hw_wifi_device_model(void)
 		|| machine_is_msm8255_u8860lp()
         || machine_is_msm8255_u8860_r()
 		|| machine_is_msm8255_u8860_92()
-		|| machine_is_msm8255_u8860_51())
+		|| machine_is_msm8255_u8860_51()
+		|| machine_is_msm8255_u8800_pro())
   {
       return WIFI_BROADCOM_4329;
   }
