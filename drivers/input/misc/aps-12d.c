@@ -705,14 +705,17 @@ static int aps_12d_probe(
 
 	/* < DTS2010081803338 zhangtao 20100818 begin */
 	/* make the rang smaller can make the ir changge bigger */
-	ret = aps_i2c_reg_write(aps, APS_12D_REG_CMD2, \
-/* < DTS2010102103994 zhangtao 20101112 begin */
+	
+	ret=-1;
+	for(i=0;i<10 && ret!=0;i++) {
+		ret = aps_i2c_reg_write(aps, APS_12D_REG_CMD2, \
 	                         (uint8_t)(APS_12D_IRDR_SEL_50MA << 6 | \
 	                                   APS_12D_FREQ_SEL_DC << 4 | \
 	                                   APS_12D_RES_SEL_12 << 2 | \
 	                                   APS_12D_RANGE_SEL_ALS_1000));
-/* DTS2010102103994 zhangtao 20101112 end > */
-	/* DTS2010081803338 zhangtao 20100818 end > */
+		printk("aps_12d_probe try %d\n",i);
+		mdelay(5);
+	}
 	if(ret < 0)
 	{
 		goto err_detect_failed;
