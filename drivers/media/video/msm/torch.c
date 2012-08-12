@@ -91,7 +91,6 @@ static long hw_camera_led_ioctl(struct file *filep ,unsigned int cmd, unsigned l
 		case CAMERA_LED_GET :
 			
 			camera_led_state = atomic_read(&camera_led_flag);
-			/* camera_led_state ==> arg(__user) */
 			if(copy_to_user((void __user *)arg,&camera_led_state,sizeof(camera_led_state))) 
 			{
 				pr_err("function copy_to_user fail");
@@ -99,7 +98,6 @@ static long hw_camera_led_ioctl(struct file *filep ,unsigned int cmd, unsigned l
 			}
 			break;
 		case CAMERA_LED_SET :
-			/* arg(__user) ==> camera_led_state */
 			if(copy_from_user(&camera_led_state,(void __user *)arg,sizeof(camera_led_state)))
 			{
 				pr_err("function copy_from_user fail");
