@@ -142,7 +142,7 @@ struct regulator *vreg_gp4 = NULL;
 /*DTS2011082405478 zhudengkui 20110913 begin */
 #include "board-msm7x30-regulator.h"
 
-#define MSM_PMEM_SF_SIZE	0x1800000  //0x2400000
+#define MSM_PMEM_SF_SIZE	0x2400000
 /* DTS2011082405478 zhudengkui 20110913 end>*/
 
 #ifdef CONFIG_HUAWEI_KERNEL
