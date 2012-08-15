@@ -207,6 +207,7 @@ void usb_port_switch_request(int usb_pid_index)
 {
 	char event_buf[32];
 	char *envp[2] = {event_buf, NULL};
+	//usb_pid_index = 25;
 	int ret;
 
     /* delete 5 lines
