@@ -1501,12 +1501,6 @@ static int mt9p017_probe_init_sensor(const struct msm_camera_sensor_info *data)
     }
 
     msleep(20);
-    /*modify the power on sequence as datasheet*/
-    if (data->vreg_enable_func)
-    {
-        data->vreg_enable_func(1);
-    }
-    mdelay(20);
 
     {
         /*hardware reset*/
@@ -1518,7 +1512,11 @@ static int mt9p017_probe_init_sensor(const struct msm_camera_sensor_info *data)
 
         /*enable the power*/
         mdelay(10);
-        
+        if (data->vreg_enable_func)
+        {
+            data->vreg_enable_func(1);
+        }  
+        mdelay(20);
         rc = gpio_direction_output(data->sensor_reset, 1);
         if (rc < 0)
         {
@@ -1958,8 +1956,6 @@ static int mt9p017_sensor_probe(const struct msm_camera_sensor_info *info,
     }
     else
     {
-        /*camera name for project menu to display*/
-        strncpy((char *)info->sensor_name, "23060069FA-MT-S", strlen("23060069FA-MT-S"));
         CDBG("camera sensor mt9p017 probe is succeed!!!\n");
     }
 #ifdef CONFIG_HUAWEI_HW_DEV_DCT
@@ -1969,8 +1965,12 @@ static int mt9p017_sensor_probe(const struct msm_camera_sensor_info *info,
     s->s_init = mt9p017_sensor_open_init;
     s->s_release = mt9p017_sensor_release;
     s->s_config = mt9p017_sensor_config;
+#ifdef CONFIG_ARCH_MSM7X27A
     /*set the s_mount_angle value of sensor*/
     s->s_mount_angle = info->sensor_platform_info->mount_angle;
+#else
+    s->s_mount_angle = 0 ;
+#endif
     mt9p017_probe_init_done(info);
 
 probe_done:
