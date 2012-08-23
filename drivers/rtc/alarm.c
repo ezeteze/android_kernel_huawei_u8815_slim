@@ -347,16 +347,21 @@ static enum hrtimer_restart alarm_timer_triggered(struct hrtimer *timer)
 	struct alarm *alarm;
 	unsigned long flags;
 	ktime_t now;
-
+	
 	spin_lock_irqsave(&alarm_slock, flags);
 
 	base = container_of(timer, struct alarm_queue, timer);
 	now = base->stopped ? base->stopped_time : hrtimer_cb_get_time(timer);
 	now = ktime_sub(now, base->delta);
-
+	
 	pr_alarm(INT, "alarm_timer_triggered type %d at %lld\n",
 		base - alarms, ktime_to_ns(now));
-
+	
+	/* liukai added at 20120823 for display alarm info */
+	printk("\n Function: %s", __func__);
+	printk("\n alarm_timer_triggered type %d at %lld", base - alarms, ktime_to_ns(now));
+	/* liukai added at 20120823 end */
+	
 	while (base->first) {
 		alarm = container_of(base->first, struct alarm, node);
 		if (alarm->softexpires.tv64 > now.tv64) {
@@ -372,6 +377,14 @@ static enum hrtimer_restart alarm_timer_triggered(struct hrtimer *timer)
 			alarm->type, alarm->function,
 			ktime_to_ns(alarm->expires),
 			ktime_to_ns(alarm->softexpires));
+		
+		/* liukai added at 20120823 for display alarm info */
+		printk("\n call alarm, type %d, func %pF, %lld (s %lld)\n",
+			alarm->type, alarm->function,
+			ktime_to_ns(alarm->expires),
+			ktime_to_ns(alarm->softexpires));
+		/* liukai added at 20120823 end */
+		
 		spin_unlock_irqrestore(&alarm_slock, flags);
 		alarm->function(alarm);
 		spin_lock_irqsave(&alarm_slock, flags);
@@ -380,6 +393,11 @@ static enum hrtimer_restart alarm_timer_triggered(struct hrtimer *timer)
 		pr_alarm(FLOW, "no more alarms of type %d\n", base - alarms);
 	update_timer_locked(base, true);
 	spin_unlock_irqrestore(&alarm_slock, flags);
+
+	/* liukai added at 20120823 for display alarm info */
+	printk("\n End Function");
+	/* liukai added at 20120823 end */
+	
 	return HRTIMER_NORESTART;
 }
 
@@ -389,6 +407,7 @@ static void alarm_triggered_func(void *p)
 	if (!(rtc->irq_data & RTC_AF))
 		return;
 	pr_alarm(INT, "rtc alarm triggered\n");
+	printk("\n wwwwwwwwwwww--->Alarm Triggered Func!!!\n");
 	wake_lock_timeout(&alarm_rtc_wake_lock, 1 * HZ);
 }
 

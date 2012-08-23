@@ -25,6 +25,8 @@
 #include <linux/uaccess.h>
 #include <linux/wakelock.h>
 
+#include <mach/pmic.h>
+
 #define ANDROID_ALARM_PRINT_INFO (1U << 0)
 #define ANDROID_ALARM_PRINT_IO (1U << 1)
 #define ANDROID_ALARM_PRINT_INT (1U << 2)
@@ -173,7 +175,37 @@ from_old_alarm_set:
 		printk("Set alarm time sec is %ld\n",new_alarm_time.tv_sec);
                 msmrtc_remote_rtc_set_alarm(&new_alarm_time);
 		break;
-#endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+#else /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+/* liukai added at 20120822 for power-off alarm begin */
+	case ANDROID_ALARM_SET_POWERUP_RTC:
+	{
+		uint32_t rtc_alarm_time;
+		struct rtc_time rtc_now;
+		if (copy_from_user(&rtc_alarm_time, (void __user *)arg,
+		    sizeof(rtc_alarm_time))) {
+		    rv = -EFAULT;
+		    goto err1;
+		}
+		printk("\n");
+		printk("\n rtc_alarm_time = %d ",rtc_alarm_time);
+			
+		if (pmic_rtc_get_time(&rtc_now) < 0) {
+		    rtc_now.sec = 0;
+		    if (pmic_rtc_start(&rtc_now) < 0) {
+		        printk("get and set rtc info failed\n");
+		        break;
+		    }
+		}
+		pmic_rtc_disable_alarm(PM_RTC_ALARM_1);
+		rtc_now.sec += rtc_alarm_time;
+		pmic_rtc_enable_alarm(PM_RTC_ALARM_1, &rtc_now);
+		printk("\n ");
+		printk("\n rtc_now: sec = %d \n", rtc_now.sec);
+		printk("\n");
+		break;
+	}
+/* liukai added at 20120822 for power-off alarm end */
+#endif
 	case ANDROID_ALARM_GET_TIME(0):
 		switch (alarm_type) {
 		case ANDROID_ALARM_RTC_WAKEUP:
@@ -258,6 +290,15 @@ static void alarm_triggered(struct alarm *alarm)
 		wake_up(&alarm_wait_queue);
 	}
 	spin_unlock_irqrestore(&alarm_slock, flags);
+
+	/* liukai added at 20120823 for display debug info*/
+	printk("\n Function: %s", __func__);
+	printk("\n Type:alarm_triggered type %d", alarm->type);
+	printk("\n Useful info:");
+	printk("\n 	alarm_enabled = %d", alarm_enabled);
+	printk("\n 	alarm_pending = %d", alarm_pending);
+	printk("\n End of this function");
+	/* liukai added at 20120823 end */
 }
 
 static const struct file_operations alarm_fops = {

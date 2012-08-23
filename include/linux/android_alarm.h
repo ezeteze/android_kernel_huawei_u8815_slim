@@ -104,6 +104,7 @@ enum android_alarm_return_flags {
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
 #define ANDROID_ALARM_SET_POWERUP_RTC             _IOW('a', 7, struct timespec)
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
+#define ANDROID_ALARM_SET_POWERUP_RTC             _IOW('a', 7, struct timespec)
 #define ANDROID_ALARM_BASE_CMD(cmd)         (cmd & ~(_IOC(0, 0, 0xf0, 0)))
 #define ANDROID_ALARM_IOCTL_TO_TYPE(cmd)    (_IOC_NR(cmd) >> 4)
 
