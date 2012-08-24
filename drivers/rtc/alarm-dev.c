@@ -290,15 +290,6 @@ static void alarm_triggered(struct alarm *alarm)
 		wake_up(&alarm_wait_queue);
 	}
 	spin_unlock_irqrestore(&alarm_slock, flags);
-
-	/* liukai added at 20120823 for display debug info*/
-	printk("\n Function: %s", __func__);
-	printk("\n Type:alarm_triggered type %d", alarm->type);
-	printk("\n Useful info:");
-	printk("\n 	alarm_enabled = %d", alarm_enabled);
-	printk("\n 	alarm_pending = %d", alarm_pending);
-	printk("\n End of this function");
-	/* liukai added at 20120823 end */
 }
 
 static const struct file_operations alarm_fops = {
