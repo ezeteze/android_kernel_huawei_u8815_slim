@@ -194,9 +194,11 @@ from_old_alarm_set:
 		}
 		printk("\n");
 		printk("\n rtc_alarm_time = %d ",rtc_alarm_time);
+		
 		/* liukai added at 20120826 begin for powerup flag */
 		alarm_powerup = 1;
 		/* liukai added at 20120826 end */
+		
 		if (pmic_rtc_get_time(&rtc_now) < 0) {
 		    rtc_now.sec = 0;
 		    if (pmic_rtc_start(&rtc_now) < 0) {
