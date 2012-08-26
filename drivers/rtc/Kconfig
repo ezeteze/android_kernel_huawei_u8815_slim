@@ -1146,4 +1146,10 @@ config  HUAWEI_FEATURE_POWEROFF_ALARM
 	bool "HUAWEI PowerOff Alarm"
 	depends on HUAWEI_KERNEL
 	default n
+
+config SHENDU_FEATURE_POWERUP_ALARM
+	bool "ShenDu OS auto power-up"
+	default n
+	help
+	  ShenDu OS function:auto power-up and power-off alarm.
 endif # RTC_CLASS
