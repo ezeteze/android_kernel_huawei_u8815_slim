@@ -1,1 +1,0 @@
-char modprobe_path[KMOD_PATH_LEN] = "/system/xbin/modprobe"
