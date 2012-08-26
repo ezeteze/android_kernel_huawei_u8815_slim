@@ -58,11 +58,6 @@ static DECLARE_WAIT_QUEUE_HEAD(alarm_wait_queue);
 static uint32_t alarm_pending;
 static uint32_t alarm_enabled;
 static uint32_t wait_pending;
-/* liukai added at 20120826 begin : power up flag*/
-#ifdef CONFIG_SHENDU_FEATURE_POWERUP_ALARM
-static bool alarm_powerup;
-#endif
-/* liukai added at 20120826 end */
 
 static struct alarm alarms[ANDROID_ALARM_TYPE_COUNT];
 
@@ -194,11 +189,7 @@ from_old_alarm_set:
 		}
 		printk("\n");
 		printk("\n rtc_alarm_time = %d ",rtc_alarm_time);
-		
-		/* liukai added at 20120826 begin for powerup flag */
-		alarm_powerup = 1;
-		/* liukai added at 20120826 end */
-		
+
 		if (pmic_rtc_get_time(&rtc_now) < 0) {
 		    rtc_now.sec = 0;
 		    if (pmic_rtc_start(&rtc_now) < 0) {
