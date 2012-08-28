@@ -150,21 +150,24 @@ struct regulator *vreg_gp4 = NULL;
 #include <asm-arm/huawei/usb_switch_huawei.h>
 #endif
 
-/*set fb size to 5M to save memory 2.8M */
-#ifdef CONFIG_HUAWEI_KERNEL
-#define MSM_FB_SIZE             0x500000
-#define MSM_PMEM_ADSP_SIZE      0x2D00000 //45M
-#else
 #ifdef CONFIG_FB_MSM_TRIPLE_BUFFER
 #define MSM_FB_SIZE            0x780000
 #else
-#define MSM_FB_SIZE            0x500000
+#define MSM_FB_SIZE            0x465000   //0x500000
 #endif
-#define MSM_PMEM_ADSP_SIZE      0x3000000
-#endif
+
+/*add dsp memory space for video*/
+/*add dsp memory space for video*/
+#define MSM_PMEM_ADSP_SIZE      0x2000000  //0x2400000
+
 #define MSM_FLUID_PMEM_ADSP_SIZE	0x2800000
 #define PMEM_KERNEL_EBI0_SIZE   0x600000
 #define MSM_PMEM_AUDIO_SIZE     0x200000
+
+#ifdef CONFIG_FB_MSM_DEFAULT_DEPTH_RGB565
+#undef MSM_PMEM_SF_SIZE
+#define MSM_PMEM_SF_SIZE        0x0c00000
+#endif
 
 #define PMIC_GPIO_INT		27
 #define PMIC_VREG_WLAN_LEVEL	2900
