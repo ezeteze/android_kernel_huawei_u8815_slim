@@ -379,6 +379,13 @@ config FB_MSM_OVERLAY0_WRITEBACK
 	---help---
 	  Support for MDP4 OVERLAY0 write back mode
 
+
+config FB_MSM_OVERLAY1_WRITEBACK
+        depends on FB_MSM_OVERLAY
+        bool "MDP overlay1 write back mode enable"
+        ---help---
+          Support for MDP4 OVERLAY1 write back mode
+
 config FB_MSM_WRITEBACK_MSM_PANEL
 	depends on FB_MSM_OVERLAY
         bool "MDP overlay write back panel enable"
@@ -601,6 +608,7 @@ config FB_MSM_EBI2_TMD_QVGA_EPSON_QCIF
 	  Support for EBI2 TMD QVGA (240x320) and Epson QCIF (176x220) panel
 
 config FB_MSM_HDMI_AS_PRIMARY
+	depends on FB_MSM_HDMI_COMMON
 	bool "Use HDMI as primary panel"
 	---help---
 	Support for using HDMI as primary

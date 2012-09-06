@@ -102,7 +102,7 @@ enum android_alarm_return_flags {
 #define ANDROID_ALARM_GET_TIME(type)        ALARM_IOW(4, type, struct timespec)
 #define ANDROID_ALARM_SET_RTC               _IOW('a', 5, struct timespec)
 #ifdef CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM
-#define ANDROID_ALARM_SET_POWERUP_RTC             _IOW('a', 7, struct timespec)
+#define ANDROID_ALARM_SET_POWERUP_RTC_HUAWEI             _IOW('a', 7, struct timespec)
 #endif /*CONFIG_HUAWEI_FEATURE_POWEROFF_ALARM*/
 #ifdef CONFIG_SHENDU_FEATURE_POWERUP_ALARM
 #define ANDROID_ALARM_SET_POWERUP_RTC             _IOW('a', 7, struct timespec)

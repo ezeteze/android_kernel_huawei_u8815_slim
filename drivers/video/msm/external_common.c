@@ -23,6 +23,8 @@
 #include "external_common.h"
 #include "mhl_api.h"
 
+#include "mdp.h"
+
 struct external_common_state_type *external_common_state;
 EXPORT_SYMBOL(external_common_state);
 DEFINE_MUTEX(external_common_state_hpd_mutex);
@@ -73,6 +75,23 @@ const char edid_blk1[0x100] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xDF};
 #endif /* DEBUG_EDID */
+
+#define DMA_E_BASE 0xB0000
+void mdp_vid_quant_set(void)
+{
+	if ((external_common_state->video_resolution == \
+		HDMI_VFRMT_720x480p60_4_3) || \
+		(external_common_state->video_resolution == \
+		HDMI_VFRMT_720x480p60_16_9)) {
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x70, 0x00EB0010);
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x74, 0x00EB0010);
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x78, 0x00EB0010);
+	} else {
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x70, 0x00FF0000);
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x74, 0x00FF0000);
+		MDP_OUTP(MDP_BASE + DMA_E_BASE + 0x78, 0x00FF0000);
+	}
+}
 
 const char *video_format_2string(uint32 format)
 {
@@ -347,11 +366,12 @@ static ssize_t hdmi_common_wta_hpd(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
 	ssize_t ret = strnlen(buf, PAGE_SIZE);
-#ifdef CONFIG_FB_MSM_HDMI_AS_PRIMARY
-	int hpd = 1;
-#else
-	int hpd = atoi(buf);
-#endif
+	int hpd;
+	if (hdmi_prim_display)
+		hpd = 1;
+	else
+		hpd = atoi(buf);
+
 	if (external_common_state->hpd_feature) {
 		if (hpd == 0 && external_common_state->hpd_feature_on) {
 			external_common_state->hpd_feature(0);
@@ -399,6 +419,14 @@ static ssize_t hdmi_msm_wta_cec(struct device *dev,
 		mutex_lock(&hdmi_msm_state_mutex);
 		hdmi_msm_state->cec_enabled = true;
 		hdmi_msm_state->cec_logical_addr = 4;
+
+		/* flush CEC queue */
+		hdmi_msm_state->cec_queue_wr = hdmi_msm_state->cec_queue_start;
+		hdmi_msm_state->cec_queue_rd = hdmi_msm_state->cec_queue_start;
+		hdmi_msm_state->cec_queue_full = false;
+		memset(hdmi_msm_state->cec_queue_rd, 0,
+			sizeof(struct hdmi_msm_cec_msg)*CEC_QUEUE_SIZE);
+
 		mutex_unlock(&hdmi_msm_state_mutex);
 		hdmi_msm_cec_init();
 		hdmi_msm_cec_write_logical_addr(
@@ -480,16 +508,19 @@ static ssize_t hdmi_msm_rda_cec_frame(struct device *dev,
 static ssize_t hdmi_msm_wta_cec_frame(struct device *dev,
 	struct device_attribute *attr, const char *buf, size_t count)
 {
+	int i;
 	int retry = ((struct hdmi_msm_cec_msg *) buf)->retransmit;
 
-	if (retry > 15)
-		retry = 15;
-	while (1) {
+	for (i = 0; i < RETRANSMIT_MAX_NUM; i++) {
 		hdmi_msm_cec_msg_send((struct hdmi_msm_cec_msg *) buf);
 		if (hdmi_msm_state->cec_frame_wr_status
-		    & CEC_STATUS_WR_ERROR && retry--)
-			msleep(360);
-		else
+		    & CEC_STATUS_WR_ERROR && retry--) {
+			mutex_lock(&hdmi_msm_state_mutex);
+			if (hdmi_msm_state->fsm_reset_done)
+				retry++;
+			mutex_unlock(&hdmi_msm_state_mutex);
+			msleep(20);
+		} else
 			break;
 	}
 
@@ -649,6 +680,14 @@ static ssize_t external_common_rda_hdmi_mode(struct device *dev,
 	return ret;
 }
 
+static ssize_t hdmi_common_rda_hdmi_primary(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	ssize_t ret = snprintf(buf, PAGE_SIZE, "%d\n",
+		hdmi_prim_display);
+	DEV_DBG("%s: '%d'\n", __func__,	hdmi_prim_display);
+	return ret;
+}
 
 static DEVICE_ATTR(video_mode, S_IRUGO | S_IWUGO,
 	external_common_rda_video_mode, external_common_wta_video_mode);
