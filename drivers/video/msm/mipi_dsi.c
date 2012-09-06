@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2008-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -95,6 +95,9 @@ static int mipi_dsi_off(struct platform_device *pdev)
 		} else {
 			mdp3_dsi_cmd_dma_busy_wait(mfd);
 		}
+	} else {
+		/* video mode, wait until fifo cleaned */
+		mipi_dsi_controller_cfg(0);
 	}
 
 	/*
@@ -188,6 +191,7 @@ static int mipi_dsi_on(struct platform_device *pdev)
 	if (mipi_dsi_pdata && mipi_dsi_pdata->dsi_power_save)
 		mipi_dsi_pdata->dsi_power_save(1);
 
+	cont_splash_clk_ctrl();
 	local_bh_disable();
 	mipi_dsi_ahb_ctrl(1);
 	local_bh_enable();
@@ -487,7 +491,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 		return 0;
 	}
 
-	mipi_dsi_clk_init(&pdev->dev);
+	mipi_dsi_clk_init(pdev);
 
 	if (!mipi_dsi_resource_initialized)
 		return -EPERM;
@@ -547,10 +551,7 @@ static int mipi_dsi_probe(struct platform_device *pdev)
 		if (mipi_dsi_pdata->get_lane_config() != 2) {
 			pr_info("Changing to DSI Single Mode Configuration\n");
 #ifdef CONFIG_FB_MSM_MDP303
-			/*temp modify, qualcomm SR : 00641512*/
-		#ifndef CONFIG_HUAWEI_KERNEL
 			update_lane_config(pinfo);
-		#endif
 #endif
 		}
 	}
