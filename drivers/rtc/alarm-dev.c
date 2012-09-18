@@ -190,19 +190,21 @@ from_old_alarm_set:
 		printk("\n");
 		printk("\n rtc_alarm_time = %d ",rtc_alarm_time);
 
-		if (pmic_rtc_get_time(&rtc_now) < 0) {
-		    rtc_now.sec = 0;
-		    if (pmic_rtc_start(&rtc_now) < 0) {
-		        printk("get and set rtc info failed\n");
-		        break;
-		    }
+		if(rtc_alarm_time > 0){
+			if (pmic_rtc_get_time(&rtc_now) < 0) {
+			    rtc_now.sec = 0;
+			    if (pmic_rtc_start(&rtc_now) < 0) {
+			        printk("get and set rtc info failed\n");
+			        break;
+			    }
+			}
+			pmic_rtc_disable_alarm(PM_RTC_ALARM_1);
+			rtc_now.sec += rtc_alarm_time;
+			pmic_rtc_enable_alarm(PM_RTC_ALARM_1, &rtc_now);
+			printk("\n ");
+			printk("\n rtc_now: sec = %d \n", rtc_now.sec);
+			printk("\n");
 		}
-		pmic_rtc_disable_alarm(PM_RTC_ALARM_1);
-		rtc_now.sec += rtc_alarm_time;
-		pmic_rtc_enable_alarm(PM_RTC_ALARM_1, &rtc_now);
-		printk("\n ");
-		printk("\n rtc_now: sec = %d \n", rtc_now.sec);
-		printk("\n");
 		break;
 	}
 #endif /* CONFIG_SHENDU_FEATURE_POWERUP_ALARM */
