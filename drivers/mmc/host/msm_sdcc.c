@@ -61,7 +61,12 @@
 
 #ifdef CONFIG_HUAWEI_KERNEL
 #include <asm/mach-types.h>
+#ifdef CONFIG_ARCH_MSM7X30
 #define SDCC_SDCARD_SLOT	4
+#endif
+#ifdef CONFIG_ARCH_MSM7X27A
+#define SDCC_SDCARD_SLOT	1
+#endif
 #endif
 
 int sdcc_wifi_slot = -1;
@@ -4431,8 +4436,20 @@ msmsdcc_probe(struct platform_device *pdev)
 	 * for every claim/release operation on a host. We use this
 	 * notification to increment/decrement runtime pm usage count.
 	 */
+#ifdef CONFIG_ARCH_MSM7X27A
+	/*
+	 * Don't disable the vdd of sd card. The sd card use sdcc1.
+	 * To fix the sd card resume fail issue.
+	 */
+    if (SDCC_SDCARD_SLOT != host->pdev_id)
+    {
 	mmc->caps |= MMC_CAP_DISABLE;
 	pm_runtime_enable(&(pdev)->dev);
+	}
+#else
+    mmc->caps |= MMC_CAP_DISABLE;
+    pm_runtime_enable(&(pdev)->dev);
+#endif
 #else
 	if (mmc->caps & MMC_CAP_NONREMOVABLE) {
 		mmc->caps |= MMC_CAP_DISABLE;
