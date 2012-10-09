@@ -4014,6 +4014,8 @@ msmsdcc_probe(struct platform_device *pdev)
 	int ret = 0;
 	int i;
 
+	printk("\n Enter %s, platform device = %s", __func__,pdev->name);
+	
 	if (pdev->dev.of_node) {
 		plat = msmsdcc_populate_pdata(&pdev->dev);
 		of_property_read_u32((&pdev->dev)->of_node,
