@@ -338,13 +338,6 @@ struct atmel_ts_data {
        struct early_suspend early_suspend;
 };
 
-struct point_data {
-	int x, y;
-	int amplitude;
-	int width;
-	bool pressed;
-};
-
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void atmel_ts_early_suspend(struct early_suspend *h);
 static void atmel_ts_late_resume(struct early_suspend *h);
@@ -816,7 +809,7 @@ int write_power_config(int on)
 	    *(tmp + 0) = 50; //0xff//Idle Acquisition
 /* < DTS2010083103149 zhangtao 20100909 begin */
 		/* < DTS2011042106137 zhangtao 20110509 begin */
-	    *(tmp + 1) = 14; //0xff//Active Acquisition
+	    *(tmp + 1) = 16; //0xff//Active Acquisition
 		/* DTS2011042106137 zhangtao 20110509 end > */
 /* DTS2010083103149 zhangtao 20100909 end > */
 	    *(tmp + 2) = 50; //0x32//Active to Idle Timeout
@@ -888,8 +881,8 @@ int write_acquisition_config(u8 instance,int flag)
 	if(0 == flag)
     {
         /* shut down calibration */
-    	*(tmp + 6) = 5; //0x0a//ATCHCALST
-    	*(tmp + 7) = 40; //0x0f//ATCHCALSTHR
+    	*(tmp + 6) = 0; //0x0a//ATCHCALST
+    	*(tmp + 7) = 1; //0x0f//ATCHCALSTHR
     }
     else 
     {
@@ -1016,7 +1009,7 @@ int write_multitouchscreen_config(u8 instance,int flag)
     if(0 == flag)
     {
         /* effect atch vaule */
-    	*(tmp + 7) = 50; //0x1d; //tchthr
+    	*(tmp + 7) = 20; //0x1d; //tchthr
     }
     else
     {
@@ -1996,16 +1989,33 @@ static void atmel_ts_work_func(struct work_struct *work)
 	u8 component=0;
 	u8 keys;
 	static u32 key_pressed = 0;
-	static bool last_is_2points = FALSE;//if it's 2 points pressed last time.
-	static int first_in_point = 0;
-	static int point_1_x_first_down;
-	static int point_1_y_first_down;
-	static int num_1;
-	static int num_2;
-	static int x_record1[10];
-	static int x_record2[5];
-	static struct point_data point[2];
-	static u32 key_tmp_old;
+/* < DTS2010071200025 zhangtao 20100715 begin */
+/* delete some lines the multi_touch_mode and is_multi_touch will not use anymore*/
+/* DTS2010071200025 zhangtao 20100715 end > */
+	static bool first_point_pressed = FALSE;
+	static bool second_point_pressed = FALSE;
+/* < DTS2010071200025 zhangtao 20100715 begin */
+    static bool last_is_2points = FALSE;//if it's 2 points pressed last time.
+    static char first_point_id = 1; 
+    static int point_1_x;
+    static int point_1_y;
+    static int first_in_point = 0;
+    static int point_1_x_first_down;
+    static int point_1_y_first_down;
+    static int num_1;
+    static int num_2;
+    static int x_record1[10];
+    static int x_record2[5];
+    static int point_1_amplitude;
+    static int point_1_width;
+    static int point_2_x;
+    static int point_2_y;
+    static int point_2_amplitude;
+    static int point_2_width;
+/* DTS2010071200025 zhangtao 20100715 end > */
+/* < DTS2010091703205 zhangtao 20101007 begin */
+    static u32 key_tmp_old;
+/* DTS2010091703205 zhangtao 20101007 end > */
 #ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
 	u32 key_tmp;
 	static u32 key_pressed1 = 0;
@@ -2021,12 +2031,12 @@ static void atmel_ts_work_func(struct work_struct *work)
 	{
 		case GEN_COMMANDPROCESSOR_T6:
 			status = *(touch_msg + 1);
-			/*if the calibration is done then make the pressed flag default*/
-			if(status & 0x10)
-			{
-				point[0].pressed = FALSE;
-				point[1].pressed = FALSE;
-			}
+            /*if the calibration is done then make the pressed flag default*/
+            if(status & 0x10)
+            {
+                first_point_pressed = FALSE;
+	            second_point_pressed = FALSE;
+            }
 			TS_DEBUG_TS("T6 status = 0x%02x\n", status);
 			break;
 			
@@ -2048,212 +2058,276 @@ static void atmel_ts_work_func(struct work_struct *work)
 			ts->sizeoftouch = *(touch_msg + 5);
 			ts->touchamplitude = *(touch_msg + 6);
 			component = *(touch_msg + 7);
-			/* if the status is detected and the cal_check_flag is 1 then we should make the calibration */
-			if(0 != (status & 0x80)&&(cal_check_flag))
-			{
-				check_chip_calibration();
-			}
-
-			#ifdef TOUCH_12BIT
-				ts->touch_x = (x_MSB << 4) + ((xy_LSB >> 4) & 0x0f);
-				ts->touch_y = (y_MSB << 4) + (xy_LSB & 0x0f);
-			#else
-				ts->touch_x = (x_MSB << 2) + ((xy_LSB >> 6) & 0x03);
-				ts->touch_y = (y_MSB << 2) + ((xy_LSB >> 2) & 0x03);
-			#endif
-
+            /* if the status is detected and the cal_check_flag is 1 then we should make the calibration */
+            if(0 != (status & 0x80)&&(cal_check_flag))
+            {
+                check_chip_calibration();
+            }
+/* DTS2010083103149 zhangtao 20100909 end > */
+#ifdef TOUCH_12BIT
+			ts->touch_x = (x_MSB << 4) + ((xy_LSB >> 4) & 0x0f);
+			ts->touch_y = (y_MSB << 4) + (xy_LSB & 0x0f);
+#else		
+			ts->touch_x = (x_MSB << 2) + ((xy_LSB >> 6) & 0x03);
+			ts->touch_y = (y_MSB << 2) + ((xy_LSB >> 2) & 0x03);
+#endif
+/* < DTS2010071200025 zhangtao 20100715 begin */
 			TS_DEBUG_TS("version 3;point %d released : %s,x=%04d,  y=%04d\n", 
 			point_index,((1 << 5) & status) ? "yes":"no", ts->touch_x, ts->touch_y);
+/* DTS2010071200025 zhangtao 20100715 end > */
+/* < DTS2010091703205 zhangtao 20101007 begin */
+            ATMEL_DBG_MASK("version 3;point %d released : %s,x=%04d,  y=%04d\n", 
+		    point_index,((1 << 5) & status) ? "yes":"no", ts->touch_x, ts->touch_y);
+/* DTS2010091703205 zhangtao 20101007 end > */
 
-			ATMEL_DBG_MASK("version 3;point %d released : %s,x=%04d,  y=%04d\n", 
-			point_index,((1 << 5) & status) ? "yes":"no", ts->touch_x, ts->touch_y);
-
+            
+/* < DTS2010082300657 zhangtao 20100819 begin */
+ /* move the key area down so we can touch the key area as the touch screen */
+/* DTS2010082300657 zhangtao 20100819 end > */
 			if(ts->is_support_multi_touch)
 			{
-				/*the 5-bit in STATUS register specifies the current point just released*/
+                /*the 5-bit in STATUS register specifies the current point just released*/
 				if((1 == point_index) && !((1 << 5) & status))
-				{
-					point[0].pressed = TRUE;
-				}
+					first_point_pressed = TRUE;
 				else if((1 == point_index) && ((1 << 5) & status))
-					point[0].pressed = FALSE;
+					first_point_pressed = FALSE;
 
-				if((2 == point_index) && !((1 << 5) & status))
-				{
-					point[1].pressed = TRUE;
-				}
-				else if((2 == point_index) && ((1 << 5) & status))
-					point[1].pressed = FALSE;
-				/*when two points are pressed, multi_touch mode is triggered.*/
-				/*if pressed, need to save the current coordinates*/
-				if(!((1 << 5) & status))
-				{
-					if(point_index == 1)
-					{
-						TS_DEBUG_TS("save point 1\t");
-						point[0].x = ts->touch_x;
-						point[0].y = ts->touch_y;
-						point[0].amplitude = ts->touchamplitude;
-						point[0].width = ts->sizeoftouch;
-						/* record point */
-						if((cal_check_flag != 0) && !(first_in_point))
-						{
-							first_in_point = 1;
-							num_1 = 0;
-							point_1_x_first_down = point[0].x;
-							point_1_y_first_down = point[0].y;
-						}
-						
-						/* timeout or not */
-						if(jiffies - resume_time < 6000)
-						{
-							x_record1[num_1] = point[0].x;
-							if(num_1 >= 9)
-							{
-								/* check point */
-								if(check_too_many_point(num_1, x_record1) == -1)
-									cal_check_flag = 1;
-								num_1 = 0;
-							}
-							else
-								num_1++;
-						}
-					}
-					else
-					{
-						TS_DEBUG_TS("save point 2\t");
-						point[1].x = ts->touch_x;
-						point[1].y = ts->touch_y;
-						point[1].amplitude = ts->touchamplitude;
-						point[1].width = ts->sizeoftouch;
-						/* timeout or not */
-						if(jiffies - resume_time < 6000)
-						{
-							x_record2[num_2] = point[1].x;
-							if(num_2 >= 4)
-							{
-								/* check point */
-								if(check_too_many_point(num_2, x_record2) == -1)
-									cal_check_flag = 1;
-								num_2 = 0;
-							}
-							else
-								num_2++;
-						}
-					}
-				}
-				else
-				{
-					if(point_index == 1)
-					{
-						if(cal_check_flag == 1 && (point[1].pressed == FALSE))
-						{
-							if(((abs(ts->touch_x - point_1_x_first_down) > 100 || abs(ts->touch_y - point_1_y_first_down) > 100) 
-								|| jiffies - resume_time > 6000))
-							{
-								/* it is all good */
-								cal_maybe_good();
-								cal_check_flag = 0;
-							}
-							first_in_point = 0;
-						}
-					}
-				}
+					if((2 == point_index) && !((1 << 5) & status))
+						second_point_pressed = TRUE;
+					else if((2 == point_index) && ((1 << 5) & status))
+						second_point_pressed = FALSE;
+				    /*when two points are pressed, multi_touch mode is triggered.*/
+/* < DTS2010071200025 zhangtao 20100715 begin */
+/* < DTS2010082300657 zhangtao 20100819 begin */
+/* delete the goto function so if the touch is in the key area this will not be run */
+/* DTS2010082300657 zhangtao 20100819 end > */
+                    /*if pressed, need to save the current coordinates*/
+                    if(!((1 << 5) & status))
+                    {   
+                        if(1 == point_index)
+                        {
+                            TS_DEBUG_TS("save point 1\t");
+                            point_1_x = ts->touch_x;
+                            point_1_y = ts->touch_y;
+                            point_1_amplitude = ts->touchamplitude;
+                            point_1_width = ts->sizeoftouch;
+                            /* record point */
+            				if((cal_check_flag != 0) && !(first_in_point))
+            				{
+             				    first_in_point = 1;
+            				    num_1 = 0;
+            				    point_1_x_first_down = point_1_x;
+            				    point_1_y_first_down = point_1_y;
+            				}
 				
-				if (point[0].pressed) {
-					input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, 0);
-					input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point[0].amplitude);
-					input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point[0].width);
-					input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point[0].x);
-					input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point[0].y);
-					input_report_key(ts->input_dev, BTN_TOUCH, 1);
-					input_mt_sync(ts->input_dev);
-				}
-				if (point[1].pressed) {
-					input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, 1);
-					input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point[1].amplitude);
-					input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point[1].width);
-					input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point[1].x);
-					input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point[1].y);
-					input_report_key(ts->input_dev, BTN_TOUCH, 1);
-					input_mt_sync(ts->input_dev);
-				}
-				if (!point[0].pressed && !point[1].pressed) // There is at least one touch
-				{
-					point[0].amplitude = 0;
-					point[0].width = 0;
-					point[1].amplitude = 0;
-					point[1].width = 0;
+                            /* timeout or not */
+            				if(jiffies - resume_time < 6000)
+            				{
+            					x_record1[num_1] = point_1_x;
+            					if(num_1 >= 9)
+            					{
+            						/* check point */
+            						if(check_too_many_point(num_1, x_record1) == -1)
+            						{
+                                    	 			cal_check_flag = 1;
+            						}
+            						num_1 = 0;
+               					}
+             					else
+            					{
+            						num_1++;
+            					}
+             				}
+                        }
+                        else
+                        {
+                            TS_DEBUG_TS("save point 2\t");
+                            point_2_x = ts->touch_x;
+                            point_2_y = ts->touch_y;
+                            point_2_amplitude = ts->touchamplitude;
+                            point_2_width = ts->sizeoftouch;
+                            /* timeout or not */
+            				if(jiffies - resume_time < 6000)
+            				{
+            					x_record2[num_2] = point_2_x;
+            					if(num_2 >= 4)
+            					{
+            						/* check point */
+            						if(check_too_many_point(num_2, x_record2) == -1)
+            						{
+                        	 			cal_check_flag = 1;
+             						}
+            						num_2 = 0;
+            					}
+            					else
+            					{
+            						num_2++;
+            					}
+            				}
+                        }
+                    }
+                    else
+                    {
+                        if(1 == point_index)
+                        {
+                    	    if(cal_check_flag == 1 && (second_point_pressed == FALSE))
+                     	    {
+    	    				    if(((abs(ts->touch_x - point_1_x_first_down) > 100 || abs(ts->touch_y - point_1_y_first_down) > 100) 
+					    				|| jiffies - resume_time > 6000))
+    					        {
+       								/* it is all good */
+     								cal_maybe_good();
+     								cal_check_flag = 0;
+        					    }
+        					    first_in_point = 0;
+                     	    }
 
-					input_mt_sync(ts->input_dev); // Empty sync packet
+                            /*if index-1 released, index-2 point remains working*/
+                            first_point_id = 2;
+                        }
+                        else
+                        {
+                            /*if index-2 released, index-1 point remains working*/
+                            first_point_id =1;
+                        }
+                    }
+                    /*if both two points are released, we need to reset first_point_id*/
+                    if(!first_point_pressed && !second_point_pressed)
+                    {
+                        point_1_amplitude = 0;
+                        point_1_width = 0;
+                        point_2_amplitude = 0;
+                        point_2_width = 0;
+                        first_point_id =1;
+                    }
+                    /*to report the first point event*/
+                    if(1 == first_point_id)
+                    {
+                        input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point_1_amplitude);
+				        input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point_1_width);
+				        input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point_1_x);
+				        input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point_1_y);
+				        input_mt_sync(ts->input_dev);
+                    }
+                    else
+                    {
+                        input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point_2_amplitude);
+				        input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point_2_width);
+				        input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point_2_x);
+				        input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point_2_y);
+				        input_mt_sync(ts->input_dev);
+                    }
+                    /*if there are two points pressed at present, we should report the second point event*/
+                    if(first_point_pressed && second_point_pressed)
+                    {
+                        if(1 == first_point_id)
+                        {
+                            input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point_2_amplitude);
+					        input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point_2_width);
+					        input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point_2_x);
+					        input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point_2_y);
+					        input_mt_sync(ts->input_dev);
+                        }
+                        else
+                        {
+                            input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, point_1_amplitude);
+					        input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, point_1_width);
+					        input_report_abs(ts->input_dev, ABS_MT_POSITION_X, point_1_x);
+					        input_report_abs(ts->input_dev, ABS_MT_POSITION_Y, point_1_y);
+					        input_mt_sync(ts->input_dev);
+                        }
+                    }
+                    else if(last_is_2points)//when one point released...
+                    {
+                        input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR, 0);
+        				input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR, 0);
+        				input_mt_sync(ts->input_dev);
+                    }
+                    input_sync(ts->input_dev);
+                    if(first_point_pressed && second_point_pressed)
+                        last_is_2points = TRUE;
+                    else
+                        last_is_2points = FALSE;
+/* DTS2010071200025 zhangtao 20100715 end > */
 				}
-
-				input_sync(ts->input_dev);
-				if(point[0].pressed && point[1].pressed)
-					last_is_2points = TRUE;
 				else
-					last_is_2points = FALSE;
-			}
-			/* < DTS2010082300657 zhangtao 20100819 begin */
-			/* move the key area code to here */
-			#ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
-			if(is_in_extra_region(ts->touch_x, ts->touch_y))
-			{
-				key_tmp = touch_get_extra_keycode(ts->touch_x, ts->touch_y);
-				TS_DEBUG_TS("the key is :%d\n", key_tmp);
-				/* < DTS2010091703205 zhangtao 20101007 begin */
-				/*save the key value for some times the value is null*/
-				if((key_tmp_old != key_tmp) && (0 != key_tmp))
 				{
-					key_tmp_old = key_tmp;
-				}
-				/*when the key is changged report the first release*/
-				if(key_tmp_old && (key_tmp_old != key_tmp))
-				{
-					input_report_key(ts->key_input, key_tmp_old, 0);
-					key_pressed1 = 0;
-					ATMEL_DBG_MASK("when the key is changged report the first release!\n");
-				}
 
-				if(key_tmp)
-				{
+					input_report_abs(ts->input_dev, ABS_X, ts->touch_x);
+					input_report_abs(ts->input_dev, ABS_Y,  ts->touch_y);
+
+					input_report_abs(ts->input_dev, ABS_PRESSURE, ts->touchamplitude);
+					input_report_abs(ts->input_dev, ABS_TOOL_WIDTH, ts->sizeoftouch);
 					if ((1 << 5) & status)//release bit
 					{
-						if(1 == key_pressed1)
-						{
-							input_report_key(ts->key_input, key_tmp, 0);
-							key_pressed1 = 0;
-							ATMEL_DBG_MASK("when the key is released report!\n");
-						}
+    						input_report_key(ts->input_dev, BTN_TOUCH, 0);
 					}
 					else
 					{
-						if(0 == key_pressed1)
-						{
-							input_report_key(ts->key_input, key_tmp, 1);
-							key_pressed1 = 1;
-							ATMEL_DBG_MASK("the key is pressed report!\n");
-						}
-					}    
+    						input_report_key(ts->input_dev, BTN_TOUCH, 1);
+					}         
+					input_sync(ts->input_dev);
+
 				}
-				input_sync(ts->key_input);	
-			}
-			/*when the touch is out of key area report the last key release*/
-			else
-			{
-				if(1 == key_pressed1)
-				{
-					input_report_key(ts->key_input, key_tmp_old, 0);
-					input_sync(ts->key_input);  
-					ATMEL_DBG_MASK("when the touch is out of key area report the last key release!\n"); 
-					key_pressed1 = 0;
-				}
-			}
-			/* DTS2010091703205 zhangtao 20101007 end > */
-			#endif
-			/* DTS2010082300657 zhangtao 20100819 end > */
-			/*<BU5D09283 luojianhong 20100506 end*/
-			/*<BU5D09839 luojianhong 20100513 end*/
+                /* < DTS2010082300657 zhangtao 20100819 begin */
+                /* move the key area code to here */
+                #ifdef CONFIG_HUAWEI_TOUCHSCREEN_EXTRA_KEY
+    			if(is_in_extra_region(ts->touch_x, ts->touch_y))
+    			{
+    				key_tmp = touch_get_extra_keycode(ts->touch_x, ts->touch_y);
+    				TS_DEBUG_TS("the key is :%d\n", key_tmp);
+					/* < DTS2010091703205 zhangtao 20101007 begin */
+                    /*save the key value for some times the value is null*/
+                    if((key_tmp_old != key_tmp) && (0 != key_tmp))
+                    {
+                        key_tmp_old = key_tmp;
+                    }
+                    /*when the key is changged report the first release*/
+                    if(key_tmp_old && (key_tmp_old != key_tmp))
+                    {
+                        input_report_key(ts->key_input, key_tmp_old, 0);
+                		key_pressed1 = 0;
+                        ATMEL_DBG_MASK("when the key is changged report the first release!\n");
+                    }
+
+            		if(key_tmp)
+            		{
+                		if ((1 << 5) & status)//release bit
+                		{
+                			if(1 == key_pressed1)
+                			{ 
+
+                                input_report_key(ts->key_input, key_tmp, 0);
+                				key_pressed1 = 0;
+                                ATMEL_DBG_MASK("when the key is released report!\n");
+                			}
+                		}
+                		else
+                		{
+                			if(0 == key_pressed1)
+                			{
+                                input_report_key(ts->key_input, key_tmp, 1);
+                                key_pressed1 = 1;
+                                ATMEL_DBG_MASK("the key is pressed report!\n");
+                			}
+                		}    
+            		}
+                    input_sync(ts->key_input);	
+            	}
+                /*when the touch is out of key area report the last key release*/
+                else
+                {
+                    if(1 == key_pressed1)
+                    {
+                        input_report_key(ts->key_input, key_tmp_old, 0);
+                        input_sync(ts->key_input);  
+                        ATMEL_DBG_MASK("when the touch is out of key area report the last key release!\n"); 
+                        key_pressed1 = 0;
+                    }
+                }
+				/* DTS2010091703205 zhangtao 20101007 end > */
+                #endif
+                /* DTS2010082300657 zhangtao 20100819 end > */
 			break;
 		case TOUCH_KEYARRAY_T15:
 			status = *(touch_msg + 1);

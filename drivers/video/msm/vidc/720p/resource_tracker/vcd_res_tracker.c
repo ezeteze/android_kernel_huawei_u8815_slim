@@ -734,6 +734,16 @@ int res_trk_check_for_sec_session()
 	return 0;
 }
 
+void res_trk_secure_unset(void)
+{
+	return;
+}
+
+void res_trk_secure_set(void)
+{
+	return;
+}
+
 int res_trk_open_secure_session()
 {
 	return -EINVAL;
@@ -743,3 +753,19 @@ int res_trk_close_secure_session()
 {
 	return 0;
 }
+u32 get_res_trk_perf_level(enum vcd_perf_level perf_level)
+{
+	return -ENOTSUPP;
+}
+u32 res_trk_is_cp_enabled(void)
+{
+	if (resource_context.vidc_platform_data->cp_enabled)
+		return 1;
+	else
+		return 0;
+}
+u32 res_trk_estimate_perf_level(u32 pn_perf_lvl)
+{
+	return 0;
+}
+

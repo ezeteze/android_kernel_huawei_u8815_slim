@@ -361,5 +361,6 @@ config HUAWEI_FEATURE_DC_DC_CHARGER
 
 config HUAWEI_EVALUATE_POWER_CONSUMPTION
 	tristate "huawei_evaluate_power_consumption"
+	depends on HUAWEI_KERNEL
 	help
 	  Say Y here if you want to support huawei evaluate power consumption.

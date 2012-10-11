@@ -705,7 +705,7 @@ static int mmc_sdio_resume(struct mmc_host *host)
 	}
 
 	if (!err && host->sdio_irqs)
-		mmc_signal_sdio_irq(host);
+		wake_up_process(host->sdio_irq_thread);
 	mmc_release_host(host);
 
 	/*
@@ -1006,10 +1006,14 @@ int sdio_reset_comm(struct mmc_card *card)
 
 	err = sdio_enable_4bit_bus(card);
 	if (err > 0) {
-		if (host->caps & MMC_CAP_8_BIT_DATA)
+		if (host->caps & MMC_CAP_8_BIT_DATA){
 			mmc_set_bus_width(host, MMC_BUS_WIDTH_8);
-		else if (host->caps & MMC_CAP_4_BIT_DATA)
+			printk("\n %s : 8 BIT support", __func__);
+			}
+		else if (host->caps & MMC_CAP_4_BIT_DATA){
 			mmc_set_bus_width(host, MMC_BUS_WIDTH_4);
+			printk("\n %s : 4 BIT support", __func__);
+			}
 	}
 	else if (err)
 		goto err;
