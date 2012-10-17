@@ -93,6 +93,8 @@ void msm_backlight_set(int level)
     static uint8 last_level = 0;
 	static boolean first_set_bl = TRUE;
 	/* keep duty 10% < level < 90% */
+		printk("\n Enter %s", __func__);
+
 #ifdef CONFIG_ARCH_MSM7X27A
 	if(level)
 	{
@@ -194,12 +196,18 @@ void pwm_set_backlight(struct msm_fb_data_type *mfd)
 {
 	lcd_panel_type lcd_panel_wvga = LCD_NONE;
 	/*When all the device are resume that can turn the light*/
+		printk("\n Enter %s",__func__);
+	if(mfd->bl_level == 0){
+		printk("\n Set backlight is 0");
+	}
+	/*
 	if(atomic_read(&suspend_flag)) 
 	{
 		mfd_local = mfd;
 		backlight_set = TRUE;
 		return;
 	}
+	*/
 #ifdef CONFIG_ARCH_MSM7X27A
 	
 	
@@ -226,11 +234,13 @@ void pwm_set_backlight(struct msm_fb_data_type *mfd)
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static void pwm_backlight_suspend( struct early_suspend *h)
 {
+	printk("\n Enter %s", __func__);
 	atomic_set(&suspend_flag,1);
 }
 
 static void pwm_backlight_resume( struct early_suspend *h)
 {
+	printk("\n Enter %s", __func__);
 	atomic_set(&suspend_flag,0);
 	
 	if (backlight_set == TRUE)
