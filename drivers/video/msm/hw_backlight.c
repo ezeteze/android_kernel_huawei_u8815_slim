@@ -196,14 +196,15 @@ void pwm_set_backlight(struct msm_fb_data_type *mfd)
 	lcd_panel_type lcd_panel_wvga = LCD_NONE;
 	/*When all the device are resume that can turn the light*/
 
-	/*
-	if(atomic_read(&suspend_flag)) 
-	{
-		mfd_local = mfd;
-		backlight_set = TRUE;
-		return;
+	//FIXME: it's not the right way to solve lcd_backlight issue
+	if(!(mfd->bl_level == 0)){
+		if(atomic_read(&suspend_flag)) 
+		{
+			mfd_local = mfd;
+			backlight_set = TRUE;
+			return;
+		}
 	}
-	*/
 #ifdef CONFIG_ARCH_MSM7X27A
 	
 	
