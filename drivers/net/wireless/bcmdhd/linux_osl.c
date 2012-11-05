@@ -61,14 +61,12 @@ typedef struct bcm_static_buf {
 static bcm_static_buf_t *bcm_static_buf = 0;
 
 #define STATIC_PKT_MAX_NUM	8
-
 typedef struct bcm_static_pkt {
 	struct sk_buff *skb_4k[STATIC_PKT_MAX_NUM];
-	struct sk_buff *skb_8k[STATIC_PKT_MAX_NUM];
+	struct sk_buff *skb_32k[STATIC_PKT_MAX_NUM];
 	struct semaphore osl_pkt_sem;
 	unsigned char pkt_use[STATIC_PKT_MAX_NUM * 2];
 } bcm_static_pkt_t;
-
 static bcm_static_pkt_t *bcm_static_skb = 0;
 #endif 
 
@@ -555,7 +553,8 @@ osl_pktget_static(osl_t *osh, uint len)
 	int i;
 	struct sk_buff *skb;
 
-	if (len > (PAGE_SIZE * 2)) {
+	/*static buf is 32k, then must be set (PAGE_SIZE * 8 = 32k) */
+	if (len > (PAGE_SIZE * 8)) {
 		printk("%s: attempt to allocate huge packet (0x%x)\n", __FUNCTION__, len);
 		return osl_pktget(osh, len);
 	}
@@ -587,7 +586,7 @@ osl_pktget_static(osl_t *osh, uint len)
 	if (i != STATIC_PKT_MAX_NUM) {
 		bcm_static_skb->pkt_use[i+STATIC_PKT_MAX_NUM] = 1;
 		up(&bcm_static_skb->osl_pkt_sem);
-		skb = bcm_static_skb->skb_8k[i];
+		skb = bcm_static_skb->skb_32k[i];
 		skb->tail = skb->data + len;
 		skb->len = len;
 		return skb;
@@ -613,7 +612,7 @@ osl_pktfree_static(osl_t *osh, void *p, bool send)
 	}
 
 	for (i = 0; i < STATIC_PKT_MAX_NUM; i++) {
-		if (p == bcm_static_skb->skb_8k[i]) {
+		if (p == bcm_static_skb->skb_32k[i]) {
 			down(&bcm_static_skb->osl_pkt_sem);
 			bcm_static_skb->pkt_use[i + STATIC_PKT_MAX_NUM] = 0;
 			up(&bcm_static_skb->osl_pkt_sem);

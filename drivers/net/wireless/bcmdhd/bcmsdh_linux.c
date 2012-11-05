@@ -174,6 +174,8 @@ int bcmsdh_probe(struct device *dev)
 	uint32 vendevid;
 	unsigned long irq_flags = 0;
 
+	printk("%s Enter\n", __func__);
+	
 #if !defined(BCMLXSDMMC) && defined(BCMPLATFORM_BUS)
 	pdev = to_platform_device(dev);
 	r = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -529,7 +531,7 @@ bcmsdh_register(bcmsdh_driver_t *driver)
 	int error = 0;
 
 	drvinfo = *driver;
-
+	printk("%s Enter\n", __func__);
 #if defined(BCMPLATFORM_BUS)
 #if defined(BCMLXSDMMC)
 	SDLX_MSG(("Linux Kernel SDIO/MMC Driver\n"));

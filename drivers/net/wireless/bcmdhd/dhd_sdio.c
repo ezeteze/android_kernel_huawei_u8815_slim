@@ -382,7 +382,7 @@ static bool dhd_readahead;
 
 /* To check if there's window offered */
 #define DATAOK(bus) \
-	(((uint8)(bus->tx_max - bus->tx_seq) > 2) && \
+	(((uint8)(bus->tx_max - bus->tx_seq) > 1) && \
 	(((uint8)(bus->tx_max - bus->tx_seq) & 0x80) == 0))
 
 /* To check if there's window offered for ctrl frame */
@@ -535,6 +535,33 @@ dhdsdio_set_siaddr_window(dhd_bus_t *bus, uint32 address)
 }
 
 
+extern int net_os_send_hang_message(struct net_device *dev);
+static struct net_device *priv_dev = NULL;
+/* set net_device */
+int dhd_bus_set_priv_dev(struct net_device *net)
+{
+    priv_dev = net;
+    return 0;
+}
+static int fail_ht_avail_request_count = 0;
+#define FAIL_HT_AVAIL_REQUEST_COUNT_MAX 100
+/* process HT avail request fail */
+static int fail_ht_avail_request(void)
+{
+    fail_ht_avail_request_count++;
+    if(fail_ht_avail_request_count >= FAIL_HT_AVAIL_REQUEST_COUNT_MAX)
+    {
+        DHD_ERROR(("%s: HT Avail request error: count = %d\n", __FUNCTION__, fail_ht_avail_request_count));
+        DHD_ERROR(("%s: send hang message !!!\n", __FUNCTION__));
+        fail_ht_avail_request_count = 0;
+        if(priv_dev) {
+            /* send hang msg to supplicant reload driver */
+            net_os_send_hang_message(priv_dev);
+        }
+    }
+    return 0;
+}
+
 /* Turn backplane clock on or off */
 static int
 dhdsdio_htclk(dhd_bus_t *bus, bool on, bool pendok)
@@ -562,6 +589,7 @@ dhdsdio_htclk(dhd_bus_t *bus, bool on, bool pendok)
 		bcmsdh_cfg_write(sdh, SDIO_FUNC_1, SBSDIO_FUNC1_CHIPCLKCSR, clkreq, &err);
 		if (err) {
 			DHD_ERROR(("%s: HT Avail request error: %d\n", __FUNCTION__, err));
+			fail_ht_avail_request();    
 			return BCME_ERROR;
 		}
 
@@ -5230,6 +5258,7 @@ dhdsdio_probe(uint16 venid, uint16 devid, uint16 bus_no, uint16 slot,
 
 
 	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
+	printk("%s: Enter\n", __FUNCTION__);
 	DHD_INFO(("%s: venid 0x%04x devid 0x%04x\n", __FUNCTION__, venid, devid));
 
 	/* We make assumptions about address window mappings */
@@ -5817,7 +5846,7 @@ int
 dhd_bus_register(void)
 {
 	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
-
+	printk("%s Enter\n", __func__);
 	return bcmsdh_register(&dhd_sdio);
 }
 
@@ -5825,7 +5854,7 @@ void
 dhd_bus_unregister(void)
 {
 	DHD_TRACE(("%s: Enter\n", __FUNCTION__));
-
+	printk("%s Enter\n", __func__);
 	bcmsdh_unregister();
 }
 

@@ -48,6 +48,8 @@ extern void dhd_bus_stop(struct dhd_bus *bus, bool enforce_mutex);
 /* Initialize bus module: prepare for communication w/dongle */
 extern int dhd_bus_init(dhd_pub_t *dhdp, bool enforce_mutex);
 
+extern int dhd_bus_set_priv_dev(struct net_device *net);
+
 /* Get the Bus Idle Time */
 extern void dhd_bus_getidletime(dhd_pub_t *dhdp, int *idletime);
 

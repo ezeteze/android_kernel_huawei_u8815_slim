@@ -36,7 +36,7 @@
 #include <dngl_stats.h>
 #include <dhd.h>
 #include <bcmsdbus.h>
-#ifdef WL_CFG80211
+#ifdef CONFIG_CFG80211
 #include <wl_cfg80211.h>
 #endif
 #if defined(CONFIG_WIFI_CONTROL_FUNC)
@@ -48,6 +48,7 @@
 #endif
 #endif /* CONFIG_WIFI_CONTROL_FUNC */
 
+#define CUSTOM_SDCC_WIFI_SLOT 2
 /*
  * Android private command strings, PLEASE define new private commands here
  * so they can be updated easily in the future (if needed)
@@ -76,7 +77,7 @@
 #define CMD_P2P_GET_NOA			"P2P_GET_NOA"
 #define CMD_P2P_SET_PS			"P2P_SET_PS"
 #define CMD_SET_AP_WPS_P2P_IE	"SET_AP_WPS_P2P_IE"
-
+#define CMD_GET_ASSOC_STA_LIST "GET_ASSOC_STA_LIST"
 
 #ifdef PNO_SUPPORT
 #define CMD_PNOSSIDCLR_SET	"PNOSSIDCLR"
@@ -113,7 +114,7 @@ typedef struct android_wifi_priv_cmd {
 void dhd_customer_gpio_wlan_ctrl(int onoff);
 uint dhd_dev_reset(struct net_device *dev, uint8 flag);
 void dhd_dev_init_ioctl(struct net_device *dev);
-#ifdef WL_CFG80211
+#ifdef CONFIG_CFG80211
 int wl_cfg80211_get_p2p_dev_addr(struct net_device *net, struct ether_addr *p2pdev_addr);
 int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command);
 #else
@@ -222,6 +223,67 @@ static int wl_android_get_band(struct net_device *dev, char *command, int total_
 		return -1;
 	bytes_written = snprintf(command, total_len, "Band %d", band);
 	return bytes_written;
+}
+
+#define MAX_WX_STRING 80
+static int
+wl_android_get_assoc_sta_list(struct net_device *dev, char *buf, int len) 
+{
+        char mac_buf[256];
+        struct maclist *sta_maclist = (struct maclist *)mac_buf;
+       char *p_mac_str;
+       char *p_mac_str_end;
+       int ret,i;
+
+       memset(mac_buf, 0, sizeof(mac_buf));
+        sta_maclist->count = 8;
+
+       ret = wldev_ioctl(dev, WLC_GET_ASSOCLIST, mac_buf,  sizeof(mac_buf), 0);
+
+       memset(buf, 0, len);
+       p_mac_str = buf;
+       p_mac_str_end = buf+len-1;
+
+        for (i = 0; i < 8; i++) {
+                struct ether_addr * id = &sta_maclist->ea[i];
+                if (!ETHER_ISNULLADDR(id->octet)) {
+                        //scb_val_t scb_val;
+                        //int rssi = 0;
+                        //bzero(&scb_val, sizeof(scb_val_t));
+
+                        if ((p_mac_str_end - p_mac_str) <= 36) {
+                                DHD_ERROR(("%s: mac list buf is < 36 for item[%i] item\n",
+                                        __FUNCTION__, i));
+                                break;
+                        }
+
+                        p_mac_str += snprintf(p_mac_str, MAX_WX_STRING,  
+                               "%02X:%02X:%02X:%02X:%02X:%02X\n", 
+                               id->octet[0], id->octet[1], id->octet[2], 
+                               id->octet[3], id->octet[4], id->octet[5]);
+#if 0
+                        bcopy(id->octet, &scb_val.ea, 6);
+                        ret = wldev_ioctl(dev, WLC_GET_RSSI, &scb_val, sizeof(scb_val_t), 0);
+                        if (ret  < 0) {
+                                snprintf(p_mac_str, MAX_WX_STRING, "RSSI:ERR");
+                                DHD_ERROR(("%s: RSSI ioctl error:%d\n",  
+                                        __FUNCTION__, ret));
+                                break;
+                        }
+
+                        rssi = dtoh32(scb_val.val);
+                        p_mac_str += snprintf(p_mac_str, MAX_WX_STRING,  
+                        "RSSI:%d", rssi);
+#endif
+                }
+        }
+        DHD_ERROR(("mac = \n%s",buf));
+       if (ret != 0) {
+               DHD_ERROR(("get assoc count fail\n"));
+       } else
+               printf("get assoc count %d, len %d\n",  sta_maclist->count, len);
+
+       return len;
 }
 
 #ifdef PNO_SUPPORT
@@ -379,19 +441,23 @@ int wl_android_wifi_off(struct net_device *dev)
 
 	printk("%s in\n", __FUNCTION__);
 	if (!dev) {
-		DHD_TRACE(("%s: dev is null\n", __FUNCTION__));
-		return -EINVAL;
+		DHD_ERROR(("%s: dev is null\n", __FUNCTION__));
+		//return -EINVAL;
+                if (g_wifi_on) {
+                        sdioh_stop(NULL);
+                        dhd_customer_gpio_wlan_ctrl(WLAN_RESET_OFF);
+                        g_wifi_on = 0;
+                }
+	} else {
+		dhd_net_if_lock(dev);
+		if (g_wifi_on) {
+			ret = dhd_dev_reset(dev, TRUE);
+			sdioh_stop(NULL);
+			dhd_customer_gpio_wlan_ctrl(WLAN_RESET_OFF);
+			g_wifi_on = 0;
+		}
+		dhd_net_if_unlock(dev);
 	}
-
-	dhd_net_if_lock(dev);
-	if (g_wifi_on) {
-		ret = dhd_dev_reset(dev, TRUE);
-		sdioh_stop(NULL);
-		dhd_customer_gpio_wlan_ctrl(WLAN_RESET_OFF);
-		g_wifi_on = 0;
-	}
-	dhd_net_if_unlock(dev);
-
 	return ret;
 }
 
@@ -499,7 +565,7 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 			net_os_set_packet_filter(net, 0); /* DHCP starts */
 		else
 			net_os_set_packet_filter(net, 1); /* DHCP ends */
-#ifdef WL_CFG80211
+#ifdef CONFIG_CFG80211
 		bytes_written = wl_cfg80211_set_btcoex_dhcp(net, command);
 #endif
 	}
@@ -513,10 +579,12 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 	else if (strnicmp(command, CMD_GETBAND, strlen(CMD_GETBAND)) == 0) {
 		bytes_written = wl_android_get_band(net, command, priv_cmd.total_len);
 	}
+#if 0
 	else if (strnicmp(command, CMD_COUNTRY, strlen(CMD_COUNTRY)) == 0) {
 		char *country_code = command + strlen(CMD_COUNTRY) + 1;
 		bytes_written = wldev_set_country(net, country_code);
 	}
+#endif
 #ifdef PNO_SUPPORT
 	else if (strnicmp(command, CMD_PNOSSIDCLR_SET, strlen(CMD_PNOSSIDCLR_SET)) == 0) {
 		bytes_written = dhd_dev_pno_reset(net);
@@ -545,21 +613,25 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		bytes_written = wl_cfg80211_set_p2p_ps(net, command + skip,
 			priv_cmd.total_len - skip);
 	}
-#ifdef WL_CFG80211
+#ifdef CONFIG_CFG80211
 	else if (strnicmp(command, CMD_SET_AP_WPS_P2P_IE,
 		strlen(CMD_SET_AP_WPS_P2P_IE)) == 0) {
 		int skip = strlen(CMD_SET_AP_WPS_P2P_IE) + 3;
 		bytes_written = wl_cfg80211_set_wps_p2p_ie(net, command + skip,
 			priv_cmd.total_len - skip, *(command + skip - 2) - '0');
 	}
-#endif /* WL_CFG80211 */
+#endif /* CONFIG_CFG80211 */
+	else if (strnicmp(command, CMD_GET_ASSOC_STA_LIST, strlen(CMD_GET_ASSOC_STA_LIST)) == 0) {
+		bytes_written = wl_android_get_assoc_sta_list(net, command, priv_cmd.total_len);
+	}
 	else {
 		DHD_ERROR(("Unknown PRIVATE command %s - ignored\n", command));
 		snprintf(command, 3, "OK");
 		bytes_written = strlen("OK");
 	}
-
-	if (bytes_written > 0) {
+	if (bytes_written >= 0) {
+		if (bytes_written == 0)
+			command[0] = '\0';
 		if (bytes_written > priv_cmd.total_len) {
 			DHD_ERROR(("%s: bytes_written = %d\n", __FUNCTION__, bytes_written));
 			bytes_written = priv_cmd.total_len;
@@ -595,7 +667,9 @@ int wl_android_init(void)
 #ifdef CUSTOMER_HW2
 	if (!iface_name[0]) {
 		memset(iface_name, 0, IFNAMSIZ);
-		bcm_strncpy_s(iface_name, IFNAMSIZ, "wlan", IFNAMSIZ);
+/*porting,WIFI Module,20111110 begin++ */
+		bcm_strncpy_s(iface_name, IFNAMSIZ, "eth", IFNAMSIZ);
+/*porting,WIFI Module,20111110 end-- */
 	}
 #endif /* CUSTOMER_HW2 */
 	return ret;
@@ -704,6 +778,35 @@ int wifi_get_irq_number(unsigned long *irq_flags_ptr)
 #endif
 }
 
+/*porting,WIFI Module,20111110 begin++ */
+static void dhd_enable_mmchost_polling(int enable)
+{
+    mm_segment_t        oldfs;
+    struct file     *filp;
+    int         length;
+    oldfs = get_fs();
+    set_fs(KERNEL_DS);
+    do {
+        char buf[3]; 
+        char sdcc_param[128] = {0};
+        sprintf(sdcc_param, "/sys/devices/platform/msm_sdcc.%d/polling", CUSTOM_SDCC_WIFI_SLOT);
+        printk("%s: %s\n",__FUNCTION__,sdcc_param);
+
+        filp = filp_open(sdcc_param, O_RDWR, S_IRUSR);
+        if (IS_ERR(filp) || !filp->f_op)
+            break;
+        length = snprintf(buf, sizeof(buf), "%d\n", enable ? 1 : 0);
+        if (filp->f_op->write(filp, buf, length, &filp->f_pos) != length) {
+            break;
+        }
+    } while (0);
+    if (!IS_ERR(filp)) {           
+        filp_close(filp, NULL);
+    }
+    set_fs(oldfs);    
+}
+/*porting,WIFI Module,20111110 end-- */
+
 int wifi_set_power(int on, unsigned long msec)
 {
 	DHD_ERROR(("%s = %d\n", __FUNCTION__, on));
@@ -740,7 +843,8 @@ void *wifi_get_country_code(char *ccode)
 	return NULL;
 }
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)) */
-
+/*porting,WIFI Module,20111110 begin++ */
+#if 0
 static int wifi_set_carddetect(int on)
 {
 	DHD_ERROR(("%s = %d\n", __FUNCTION__, on));
@@ -749,21 +853,22 @@ static int wifi_set_carddetect(int on)
 	}
 	return 0;
 }
-
+#endif
 static int wifi_probe(struct platform_device *pdev)
 {
 	struct wifi_platform_data *wifi_ctrl =
 		(struct wifi_platform_data *)(pdev->dev.platform_data);
 
 	DHD_ERROR(("## %s\n", __FUNCTION__));
-	wifi_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "bcmdhd_wlan_irq");
-	if (wifi_irqres == NULL)
-		wifi_irqres = platform_get_resource_byname(pdev,
-			IORESOURCE_IRQ, "bcm4329_wlan_irq");
+//	wifi_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "bcmdhd_wlan_irq");
+//	if (wifi_irqres == NULL)
+//		wifi_irqres = platform_get_resource_byname(pdev,
+//			IORESOURCE_IRQ, "bcm4329_wlan_irq");
 	wifi_control_data = wifi_ctrl;
 
 	wifi_set_power(1, 0);	/* Power On */
-	wifi_set_carddetect(1);	/* CardDetect (0->1) */
+//	wifi_set_carddetect(1);	/* CardDetect (0->1) */
+	dhd_enable_mmchost_polling(1); 
 
 	up(&wifi_control_sem);
 	return 0;
@@ -778,11 +883,14 @@ static int wifi_remove(struct platform_device *pdev)
 	wifi_control_data = wifi_ctrl;
 
 	wifi_set_power(0, 0);	/* Power Off */
-	wifi_set_carddetect(0);	/* CardDetect (1->0) */
+//	wifi_set_carddetect(0);	/* CardDetect (1->0) */
+	dhd_enable_mmchost_polling(1); 
 
 	up(&wifi_control_sem);
+	DHD_ERROR(("## %s leave\n", __FUNCTION__));
 	return 0;
 }
+/*porting,WIFI Module,20111110 end-- */
 
 static int wifi_suspend(struct platform_device *pdev, pm_message_t state)
 {
@@ -803,16 +911,18 @@ static int wifi_resume(struct platform_device *pdev)
 	return 0;
 }
 
+/*porting,WIFI Module,20111110 begin++ */
 static struct platform_driver wifi_device = {
 	.probe          = wifi_probe,
 	.remove         = wifi_remove,
 	.suspend        = wifi_suspend,
 	.resume         = wifi_resume,
 	.driver         = {
-	.name   = "bcmdhd_wlan",
+	.name   = "bcm4330_wlan",
 	}
 };
 
+#if 0
 static struct platform_driver wifi_device_legacy = {
 	.probe          = wifi_probe,
 	.remove         = wifi_remove,
@@ -822,12 +932,13 @@ static struct platform_driver wifi_device_legacy = {
 	.name   = "bcm4329_wlan",
 	}
 };
+#endif
 
 static int wifi_add_dev(void)
 {
 	DHD_TRACE(("## Calling platform_driver_register\n"));
 	platform_driver_register(&wifi_device);
-	platform_driver_register(&wifi_device_legacy);
+//	platform_driver_register(&wifi_device_legacy);
 	return 0;
 }
 
@@ -835,6 +946,8 @@ static void wifi_del_dev(void)
 {
 	DHD_TRACE(("## Unregister platform_driver_register\n"));
 	platform_driver_unregister(&wifi_device);
-	platform_driver_unregister(&wifi_device_legacy);
+//	platform_driver_unregister(&wifi_device_legacy);
 }
 #endif /* defined(CONFIG_WIFI_CONTROL_FUNC) */
+/*porting,WIFI Module,20111110 end-- */
+
