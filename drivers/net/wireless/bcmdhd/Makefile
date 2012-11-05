@@ -12,7 +12,7 @@ DHDCFLAGS += -DCUSTOMER_HW2
 # Support the sdio_reset_comm(). Quick back to live when system resuming.
 DHDCFLAGS += -DMMC_SDIO_ABORT
 # Use HW_OOB as default. HW_OOB is level-trigger
-DHDCFLAGS += -DHW_OOB -DOOB_INTR_ONLY -DCUSTOM_OOB_GPIO_NUM=0
+DHDCFLAGS += -DHW_OOB -DOOB_INTR_ONLY -DCUSTOM_OOB_GPIO_NUM=48
 # Send out the null packet in period to keep the connection with AP
 DHDCFLAGS += -DKEEP_ALIVE
 # Debug flags

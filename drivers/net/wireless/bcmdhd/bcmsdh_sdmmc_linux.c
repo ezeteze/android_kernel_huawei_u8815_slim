@@ -99,17 +99,11 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 {
 	int ret = 0;
 	static struct sdio_func sdio_func_0;
-	//sd_trace(("bcmsdh_sdmmc: %s Enter\n", __FUNCTION__));
-	//sd_trace(("sdio_bcmsdh: func->class=%x\n", func->class));
-	//sd_trace(("sdio_vendor: 0x%04x\n", func->vendor));
-	//sd_trace(("sdio_device: 0x%04x\n", func->device));
-	//sd_trace(("Function#: 0x%04x\n", func->num));
-	
-	printk("bcmsdh_sdmmc: %s Enter\n", __FUNCTION__);
-	printk("sdio_bcmsdh: func->class=%x\n", func->class);
-	printk("sdio_vendor: 0x%04x\n", func->vendor);
-	printk("sdio_device: 0x%04x\n", func->device);
-	printk("Function#: 0x%04x\n", func->num);
+	sd_trace(("bcmsdh_sdmmc: %s Enter\n", __FUNCTION__));
+	sd_trace(("sdio_bcmsdh: func->class=%x\n", func->class));
+	sd_trace(("sdio_vendor: 0x%04x\n", func->vendor));
+	sd_trace(("sdio_device: 0x%04x\n", func->device));
+	sd_trace(("Function#: 0x%04x\n", func->num));
 
 	if (func->num == 1) {
 		sdio_func_0.num = 0;
@@ -289,7 +283,6 @@ static int __init
 bcmsdh_module_init(void)
 {
 	int error = 0;
-	printk("\n Enter %s", __func__);
 	sdio_function_init();
 	return error;
 }
@@ -297,7 +290,6 @@ bcmsdh_module_init(void)
 static void __exit
 bcmsdh_module_cleanup(void)
 {
-	printk("\n Enter %s", __func__);
 	sdio_function_cleanup();
 }
 
@@ -316,7 +308,6 @@ int sdio_function_init(void)
 {
 	int error = 0;
 	sd_trace(("bcmsdh_sdmmc: %s Enter\n", __FUNCTION__));
-	printk("\n Enter %s", __func__);
 	gInstance = kzalloc(sizeof(BCMSDH_SDMMC_INSTANCE), GFP_KERNEL);
 	if (!gInstance)
 		return -ENOMEM;
@@ -333,7 +324,6 @@ extern int bcmsdh_remove(struct device *dev);
 void sdio_function_cleanup(void)
 {
 	sd_trace(("%s Enter\n", __FUNCTION__));
-	printk("\n Enter %s", __func__);
 
 	sdio_unregister_driver(&bcmsdh_sdmmc_driver);
 

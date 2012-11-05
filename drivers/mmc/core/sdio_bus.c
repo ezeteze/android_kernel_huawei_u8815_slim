@@ -243,7 +243,7 @@ void sdio_unregister_bus(void)
  */
 int sdio_register_driver(struct sdio_driver *drv)
 {
-	printk("%s Enter, driver name = %s\n", drv->name);
+	printk("%s Enter, driver name = %s\n", __func__, drv->name);
 	drv->drv.name = drv->name;
 	drv->drv.bus = &sdio_bus_type;
 	return driver_register(&drv->drv);
