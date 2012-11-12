@@ -2988,9 +2988,9 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #if defined(AP) || defined(WLP2P)
 	uint32 apsta = 1; /* Enable APSTA mode */
 #endif /* defined(AP) || defined(WLP2P) */
-#ifdef GET_CUSTOM_MAC_ENABLE
-	struct ether_addr ea_addr;
-#endif /* GET_CUSTOM_MAC_ENABLE */
+//#ifdef GET_CUSTOM_MAC_ENABLE
+//	struct ether_addr ea_addr;
+//#endif /* GET_CUSTOM_MAC_ENABLE */
 
 	DHD_TRACE(("Enter %s\n", __FUNCTION__));
 	dhd->op_mode = 0;
