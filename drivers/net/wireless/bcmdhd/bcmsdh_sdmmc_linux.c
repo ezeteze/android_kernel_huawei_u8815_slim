@@ -61,7 +61,7 @@
 
 #include <dhd_dbg.h>
 
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 extern void wl_cfg80211_set_parent_dev(void *dev);
 extern void wl_cfg80211_set_sdio_func(void *func);
 #endif
@@ -119,7 +119,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 	gInstance->func[func->num] = func;
 
 	if (func->num == 2) {
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 		wl_cfg80211_set_parent_dev(&func->dev);
 		//wl_cfg80211_set_sdio_func(func);
 #endif
@@ -161,15 +161,35 @@ static const struct sdio_device_id bcmsdh_sdmmc_ids[] = {
 };
 MODULE_DEVICE_TABLE(sdio, bcmsdh_sdmmc_ids);
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 39)) && defined(CONFIG_PM)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)) && defined(CONFIG_PM)
 static int bcmsdh_sdmmc_suspend(struct device *pdev)
 {
 	struct sdio_func *func = dev_to_sdio_func(pdev);
+	mmc_pm_flag_t sdio_flags;
+	int ret;
 
 	if (func->num != 2)
 		return 0;
+
+	sd_trace(("%s Enter\n", __FUNCTION__));
+
 	if (dhd_os_check_wakelock(bcmsdh_get_drvdata()))
 		return -EBUSY;
+
+	sdio_flags = sdio_get_host_pm_caps(func);
+
+	if (!(sdio_flags & MMC_PM_KEEP_POWER)) {
+		sd_err(("%s: can't keep power while host is suspended\n", __FUNCTION__));
+		return  -EINVAL;
+	}
+
+	/* keep power while host suspended */
+	ret = sdio_set_host_pm_flags(func, MMC_PM_KEEP_POWER);
+	if (ret) {
+		sd_err(("%s: error while trying to keep power\n", __FUNCTION__));
+		return ret;
+	}
+
 #if defined(OOB_INTR_ONLY)
 	bcmsdh_oob_intr_set(0);
 #endif
@@ -181,13 +201,13 @@ static int bcmsdh_sdmmc_suspend(struct device *pdev)
 
 static int bcmsdh_sdmmc_resume(struct device *pdev)
 {
+#if defined(OOB_INTR_ONLY)
 	struct sdio_func *func = dev_to_sdio_func(pdev);
-
-	if (func->num != 2)
-		return 0;
+#endif
+	sd_trace(("%s Enter\n", __FUNCTION__));
 	dhd_mmc_suspend = FALSE;
 #if defined(OOB_INTR_ONLY)
-	if (dhd_os_check_if_up(bcmsdh_get_drvdata()))
+	if ((func->num == 2) && dhd_os_check_if_up(bcmsdh_get_drvdata()))
 		bcmsdh_oob_intr_set(1);
 #endif
 	smp_mb();
@@ -205,7 +225,7 @@ static struct sdio_driver bcmsdh_sdmmc_driver = {
 	.remove		= bcmsdh_sdmmc_remove,
 	.name		= "bcmsdh_sdmmc",
 	.id_table	= bcmsdh_sdmmc_ids,
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 39)) && defined(CONFIG_PM)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)) && defined(CONFIG_PM)
 	.drv = {
 		.pm	= &bcmsdh_sdmmc_pm_ops,
 	},
