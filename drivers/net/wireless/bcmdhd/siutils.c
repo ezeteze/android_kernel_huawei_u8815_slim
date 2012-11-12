@@ -22,7 +22,7 @@
  * software in any way with any other Broadcom software provided under a license
  * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: siutils.c,v 1.813.2.36 2011-02-10 23:43:55 Exp $
+ * $Id: siutils.c,v 1.813.2.36 2011-02-10 23:43:55 $
  */
 
 #include <typedefs.h>
@@ -213,11 +213,11 @@ si_buscore_setup(si_info_t *sii, chipcregs_t *cc, uint bustype, uint32 savewin,
 
 	/* figure out bus/orignal core idx */
 	sii->pub.buscoretype = NODEV_CORE_ID;
-	sii->pub.buscorerev = NOREV;
+	sii->pub.buscorerev = (uint)NOREV;
 	sii->pub.buscoreidx = BADIDX;
 
 	pci = pcie = FALSE;
-	pcirev = pcierev = NOREV;
+	pcirev = pcierev = (uint)NOREV;
 	pciidx = pcieidx = BADIDX;
 
 	for (i = 0; i < sii->numcores; i++) {
