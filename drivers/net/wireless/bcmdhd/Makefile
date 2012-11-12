@@ -18,7 +18,7 @@ DHDCFLAGS += -DKEEP_ALIVE
 # Debug flags
 DHDCFLAGS += -DBCMDBG -DSDTEST -DSHOW_EVENTS -DDHD_DEBUG
 # For ICS build-in mode without module removing anymore
-DHDCFLAGS += -DENABLE_INSMOD_NO_FW_LOAD 
+#DHDCFLAGS += -DENABLE_INSMOD_NO_FW_LOAD 
 
 DHDOFILES = aiutils.o bcmsdh_sdmmc_linux.o dhd_linux.o siutils.o bcmutils.o   \
 	dhd_linux_sched.o bcmwifi.o dhd_sdio.o bcmevent.o dhd_bta.o hndpmu.o  \
