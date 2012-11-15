@@ -569,10 +569,10 @@ osl_pktget_static(osl_t *osh, uint len)
 
 		if (i != STATIC_PKT_MAX_NUM) {
 			bcm_static_skb->pkt_use[i] = 1;
-			up(&bcm_static_skb->osl_pkt_sem);
 			skb = bcm_static_skb->skb_4k[i];
 			skb->tail = skb->data + len;
 			skb->len = len;
+			up(&bcm_static_skb->osl_pkt_sem);
 			return skb;
 		}
 	}
@@ -585,10 +585,10 @@ osl_pktget_static(osl_t *osh, uint len)
 
 	if (i != STATIC_PKT_MAX_NUM) {
 		bcm_static_skb->pkt_use[i+STATIC_PKT_MAX_NUM] = 1;
-		up(&bcm_static_skb->osl_pkt_sem);
 		skb = bcm_static_skb->skb_32k[i];
 		skb->tail = skb->data + len;
 		skb->len = len;
+		up(&bcm_static_skb->osl_pkt_sem);
 		return skb;
 	}
 
@@ -602,9 +602,14 @@ osl_pktfree_static(osl_t *osh, void *p, bool send)
 {
 	int i;
 
+	if (!bcm_static_skb) {
+		osl_pktfree(osh, p, send);
+		return;
+	}
+
+	down(&bcm_static_skb->osl_pkt_sem);
 	for (i = 0; i < STATIC_PKT_MAX_NUM; i++) {
 		if (p == bcm_static_skb->skb_4k[i]) {
-			down(&bcm_static_skb->osl_pkt_sem);
 			bcm_static_skb->pkt_use[i] = 0;
 			up(&bcm_static_skb->osl_pkt_sem);
 			return;
@@ -613,14 +618,15 @@ osl_pktfree_static(osl_t *osh, void *p, bool send)
 
 	for (i = 0; i < STATIC_PKT_MAX_NUM; i++) {
 		if (p == bcm_static_skb->skb_32k[i]) {
-			down(&bcm_static_skb->osl_pkt_sem);
 			bcm_static_skb->pkt_use[i + STATIC_PKT_MAX_NUM] = 0;
 			up(&bcm_static_skb->osl_pkt_sem);
 			return;
 		}
 	}
+	up(&bcm_static_skb->osl_pkt_sem);
 
-	return osl_pktfree(osh, p, send);
+	osl_pktfree(osh, p, send);
+	return;
 }
 #endif 
 

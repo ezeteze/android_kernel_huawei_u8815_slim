@@ -36,7 +36,7 @@
 #include <dngl_stats.h>
 #include <dhd.h>
 #include <bcmsdbus.h>
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 #include <wl_cfg80211.h>
 #endif
 #if defined(CONFIG_WIFI_CONTROL_FUNC)
@@ -114,7 +114,7 @@ typedef struct android_wifi_priv_cmd {
 void dhd_customer_gpio_wlan_ctrl(int onoff);
 uint dhd_dev_reset(struct net_device *dev, uint8 flag);
 void dhd_dev_init_ioctl(struct net_device *dev);
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 int wl_cfg80211_get_p2p_dev_addr(struct net_device *net, struct ether_addr *p2pdev_addr);
 int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command);
 #else
@@ -426,8 +426,9 @@ int wl_android_wifi_on(struct net_device *dev)
 		sdioh_start(NULL, 0);
 		ret = dhd_dev_reset(dev, FALSE);
 		sdioh_start(NULL, 1);
-		if (!ret)
+		if (!ret) 
 			dhd_dev_init_ioctl(dev);
+
 		g_wifi_on = 1;
 	}
 	dhd_net_if_unlock(dev);
@@ -448,7 +449,7 @@ int wl_android_wifi_off(struct net_device *dev)
                         dhd_customer_gpio_wlan_ctrl(WLAN_RESET_OFF);
                         g_wifi_on = 0;
                 }
-	} else {
+	}
 		dhd_net_if_lock(dev);
 		if (g_wifi_on) {
 			ret = dhd_dev_reset(dev, TRUE);
@@ -457,7 +458,7 @@ int wl_android_wifi_off(struct net_device *dev)
 			g_wifi_on = 0;
 		}
 		dhd_net_if_unlock(dev);
-	}
+	
 	return ret;
 }
 
@@ -565,7 +566,7 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 			net_os_set_packet_filter(net, 0); /* DHCP starts */
 		else
 			net_os_set_packet_filter(net, 1); /* DHCP ends */
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 		bytes_written = wl_cfg80211_set_btcoex_dhcp(net, command);
 #endif
 	}
@@ -613,14 +614,14 @@ int wl_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
 		bytes_written = wl_cfg80211_set_p2p_ps(net, command + skip,
 			priv_cmd.total_len - skip);
 	}
-#ifdef CONFIG_CFG80211
+#ifdef WL_CFG80211
 	else if (strnicmp(command, CMD_SET_AP_WPS_P2P_IE,
 		strlen(CMD_SET_AP_WPS_P2P_IE)) == 0) {
 		int skip = strlen(CMD_SET_AP_WPS_P2P_IE) + 3;
 		bytes_written = wl_cfg80211_set_wps_p2p_ie(net, command + skip,
 			priv_cmd.total_len - skip, *(command + skip - 2) - '0');
 	}
-#endif /* CONFIG_CFG80211 */
+#endif /* WL_CFG80211 */
 	else if (strnicmp(command, CMD_GET_ASSOC_STA_LIST, strlen(CMD_GET_ASSOC_STA_LIST)) == 0) {
 		bytes_written = wl_android_get_assoc_sta_list(net, command, priv_cmd.total_len);
 	}

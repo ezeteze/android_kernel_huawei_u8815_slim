@@ -96,7 +96,7 @@ int dhd_customer_oob_irq_map(unsigned long *irq_flags_ptr)
 	dhd_oob_gpio_num = CUSTOM_OOB_GPIO_NUM;
 	host_oob_irq = MSM_GPIO_TO_INT(dhd_oob_gpio_num);
 	/*porting,WIFI Module,20111110 end-- */
-       printk("dhd_customer_oob_irq_map oob gpio is : %d;wifi slot is :%d\n",dhd_oob_gpio_num,CUSTOM_SDCC_WIFI_SLOT);
+     //  printk("dhd_customer_oob_irq_map oob gpio is : %d;wifi slot is :%d\n",dhd_oob_gpio_num,CUSTOM_SDCC_WIFI_SLOT);
 #else
 #if defined(CUSTOM_OOB_GPIO_NUM)
 	if (dhd_oob_gpio_num < 0) {
