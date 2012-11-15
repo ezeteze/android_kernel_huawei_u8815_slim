@@ -7,10 +7,10 @@ DHDCFLAGS = -Wall -Wstrict-prototypes -Dlinux -DBCMDRIVER                     \
 	-DMMC_SDIO_ABORT -DBCMSDIO -DBCMLXSDMMC -DBCMPLATFORM_BUS -DWLP2P     \
 	-DNEW_COMPAT_WIRELESS -DWIFI_ACT_FRAME -DARP_OFFLOAD_SUPPORT          \
 	-DKEEP_ALIVE -DCSCAN -DGET_CUSTOM_MAC_ENABLE -DPKT_FILTER_SUPPORT     \
-	-DEMBEDDED_PLATFORM -DENABLE_INSMOD_NO_FW_LOAD -DPNO_SUPPORT          \
+	-DEMBEDDED_PLATFORM -DPNO_SUPPORT          \
 	-DSET_RANDOM_MAC_SOFTAP -DWL_CFG80211_STA_EVENT                       \
 	-Idrivers/net/wireless/bcmdhd -Idrivers/net/wireless/bcmdhd/include
-
+#  -DENABLE_INSMOD_NO_FW_LOAD
 DHDOFILES = aiutils.o bcmsdh_sdmmc_linux.o dhd_linux.o siutils.o bcmutils.o   \
 	dhd_linux_sched.o bcmwifi.o dhd_sdio.o bcmevent.o dhd_bta.o hndpmu.o  \
 	bcmsdh.o dhd_cdc.o bcmsdh_linux.o dhd_common.o linux_osl.o            \
@@ -20,15 +20,13 @@ obj-$(CONFIG_BCMDHD) += bcmdhd.o
 bcmdhd-objs += $(DHDOFILES)
 ifneq ($(CONFIG_WIRELESS_EXT),)
 bcmdhd-objs += wl_iw.o
-DHDCFLAGS += -DSOFTAP -DCSCAN -DWL_WIRELESS_EXT
+DHDCFLAGS += -DSOFTAP -DWL_WIRELESS_EXT
 endif
 ifneq ($(CONFIG_CFG80211),)
 bcmdhd-objs += wl_cfg80211.o wl_cfgp2p.o wl_linux_mon.o
 DHDCFLAGS += -DWL_CFG80211
-# P2P support
-DHDCFLAGS += -DWLP2P
-# WAPI support
-#DHDCFLAGS += -DBCMWAPI_WPI -DBCMWAPI_WAI
+DHDCFLAGS += -DCUSTOM_ROAM_TRIGGER_SETTING=-65
+DHDCFLAGS += -DCUSTOM_ROAM_DELTA_SETTING=15
 endif
 ifneq ($(CONFIG_DHD_USE_SCHED_SCAN),)
 DHDCFLAGS += -DWL_SCHED_SCAN
