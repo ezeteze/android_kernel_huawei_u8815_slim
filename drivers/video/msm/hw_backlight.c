@@ -198,7 +198,7 @@ void pwm_set_backlight(struct msm_fb_data_type *mfd)
 	//printk("\n Enter %s ---3333333333333", __func__);
 
 	//FIXME: it's not the right way to solve lcd_backlight issue
-	if(!(mfd->bl_level == 0)){
+//	if(!(mfd->bl_level == 0)){
 		if(atomic_read(&suspend_flag)) 
 		{
 			mfd_local = mfd;
@@ -206,7 +206,7 @@ void pwm_set_backlight(struct msm_fb_data_type *mfd)
 		//	printk("\n RETURN -----!!!!!!!!!!!-----");
 			return;
 		}
-	}
+//	}
 #ifdef CONFIG_ARCH_MSM7X27A	
 	lcd_panel_wvga = get_lcd_panel_type();
 	if ((MIPI_RSP61408_CHIMEI_WVGA == lcd_panel_wvga ) 
