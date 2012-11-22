@@ -341,7 +341,12 @@ struct wiphy *wiphy_new(const struct cfg80211_ops *ops, int sizeof_priv)
 
 	alloc_size = sizeof(*rdev) + sizeof_priv;
 
-	printk("%s Enter, alloc_size=%d\n", __func__, alloc_size);
+	//printk("%s Enter, alloc_size=%d\n", __func__, alloc_size);
+	
+	if(alloc_size > 80000 && alloc_size < 70000){
+		printk("error size %d\n", alloc_size);	
+		return  NULL;
+		}
 	
 	rdev = kzalloc(alloc_size, GFP_KERNEL);
 	if (!rdev)
