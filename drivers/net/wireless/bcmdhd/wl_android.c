@@ -846,7 +846,7 @@ void *wifi_get_country_code(char *ccode)
 }
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 39)) */
 /*porting,WIFI Module,20111110 begin++ */
-#if 0
+#if 1
 static int wifi_set_carddetect(int on)
 {
 	DHD_ERROR(("%s = %d\n", __FUNCTION__, on));
@@ -862,14 +862,14 @@ static int wifi_probe(struct platform_device *pdev)
 		(struct wifi_platform_data *)(pdev->dev.platform_data);
 
 	DHD_ERROR(("## %s\n", __FUNCTION__));
-//	wifi_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "bcmdhd_wlan_irq");
-//	if (wifi_irqres == NULL)
-//		wifi_irqres = platform_get_resource_byname(pdev,
-//			IORESOURCE_IRQ, "bcm4329_wlan_irq");
+	wifi_irqres = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "bcmdhd_wlan_irq");
+	if (wifi_irqres == NULL)
+		wifi_irqres = platform_get_resource_byname(pdev,
+			IORESOURCE_IRQ, "bcm4329_wlan_irq");
 	wifi_control_data = wifi_ctrl;
 
 	wifi_set_power(1, 0);	/* Power On */
-//	wifi_set_carddetect(1);	/* CardDetect (0->1) */
+	wifi_set_carddetect(1);	/* CardDetect (0->1) */
 	dhd_enable_mmchost_polling(1); 
 
 	up(&wifi_control_sem);
@@ -885,7 +885,7 @@ static int wifi_remove(struct platform_device *pdev)
 	wifi_control_data = wifi_ctrl;
 
 	wifi_set_power(0, 0);	/* Power Off */
-//	wifi_set_carddetect(0);	/* CardDetect (1->0) */
+	wifi_set_carddetect(0);	/* CardDetect (1->0) */
 	dhd_enable_mmchost_polling(1); 
 
 	up(&wifi_control_sem);
