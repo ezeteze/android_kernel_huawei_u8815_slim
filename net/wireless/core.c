@@ -329,6 +329,7 @@ struct wiphy *wiphy_new(const struct cfg80211_ops *ops, int sizeof_priv)
 
 	struct cfg80211_registered_device *rdev;
 	int alloc_size;
+	int i = 0;
 
 	WARN_ON(ops->add_key && (!ops->del_key || !ops->set_default_key));
 	WARN_ON(ops->auth && (!ops->assoc || !ops->deauth || !ops->disassoc));
@@ -340,15 +341,14 @@ struct wiphy *wiphy_new(const struct cfg80211_ops *ops, int sizeof_priv)
 	WARN_ON(ops->join_mesh && !ops->leave_mesh);
 
 	alloc_size = sizeof(*rdev) + sizeof_priv;
-
-	//printk("%s Enter, alloc_size=%d\n", __func__, alloc_size);
-	
-	if(alloc_size > 80000 && alloc_size < 70000){
-		printk("error size %d\n", alloc_size);	
-		return  NULL;
-		}
 	
 	rdev = kzalloc(alloc_size, GFP_KERNEL);
+
+	while(i < 5 && (!rdev)){
+		rdev = kzalloc(alloc_size, GFP_KERNEL);
+		i++;
+	}
+
 	if (!rdev)
 		return NULL;
 
