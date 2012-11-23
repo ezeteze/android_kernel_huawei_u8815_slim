@@ -345,8 +345,10 @@ struct wiphy *wiphy_new(const struct cfg80211_ops *ops, int sizeof_priv)
 	rdev = kzalloc(alloc_size, GFP_KERNEL);
 
 	while(i < 5 && (!rdev)){
+		printk("%s : Fail to alloc memory for wifi, try again(%d)\n", __func__, i);
 		rdev = kzalloc(alloc_size, GFP_KERNEL);
 		i++;
+		usleep(200);
 	}
 
 	if (!rdev)
