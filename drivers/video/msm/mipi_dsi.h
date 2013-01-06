@@ -304,7 +304,7 @@ void mipi_dsi_clk_deinit(struct device *dev);
 void mipi_dsi_prepare_clocks(void);
 void mipi_dsi_unprepare_clocks(void);
 void mipi_dsi_ahb_ctrl(u32 enable);
-void cont_splash_clk_ctrl(void);
+void cont_splash_clk_ctrl(int enable);
 void mipi_dsi_turn_on_clks(void);
 void mipi_dsi_turn_off_clks(void);
 

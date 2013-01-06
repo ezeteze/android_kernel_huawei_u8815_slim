@@ -295,7 +295,7 @@ void mipi_dsi_phy_init(int panel_ndx, struct msm_panel_info const *panel_info,
 	wmb();
 }
 
-void cont_splash_clk_ctrl(void)
+void cont_splash_clk_ctrl(int enable)
 {
 }
 
