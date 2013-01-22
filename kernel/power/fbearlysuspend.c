@@ -35,9 +35,6 @@ static void stop_drawing_early_suspend(struct early_suspend *h)
 	int ret;
 	unsigned long irq_flags;
 
-    //FIXME: TEMPLE WAY TO SOLVE CRT
-    msleep(450);
-
 	spin_lock_irqsave(&fb_state_lock, irq_flags);
 	fb_state = FB_STATE_REQUEST_STOP_DRAWING;
 	spin_unlock_irqrestore(&fb_state_lock, irq_flags);
