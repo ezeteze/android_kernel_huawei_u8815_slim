@@ -109,7 +109,7 @@ static struct platform_device rgb_leds_device = {
 static struct platform_device keyboard_backlight_device = {
     .name       = "button-backlight",
     .id     = 1,
-}; 
+};
 
 static struct platform_device msm_device_pmic_leds = {
     .name   = "pmic-leds",
@@ -161,7 +161,7 @@ static struct gs_platform_data gs_adi346_platform_data = {
     .init_flag = &gs_init_flag,
     .get_compass_gs_position=get_compass_gs_position,
 };
-#endif 
+#endif
 /*add kxtik's platform_data*/
 #ifdef CONFIG_HUAWEI_FEATURE_SENSORS_ACCELEROMETER_KXTIK1004
 static struct gs_platform_data gs_kxtik_platform_data = {
@@ -171,7 +171,7 @@ static struct gs_platform_data gs_kxtik_platform_data = {
     .init_flag = &gs_init_flag,
     .get_compass_gs_position=get_compass_gs_position,
 };
-#endif 
+#endif
 #if defined(CONFIG_I2C) && defined(CONFIG_GPIO_SX150X)
 static struct i2c_board_info core_exp_i2c_info[] __initdata = {
 	{
@@ -421,7 +421,7 @@ static struct platform_device smc91x_device = {
 
 /* The following config was used for WCN2243 only. 0xFD means wake.*/
 #ifdef CONFIG_HUAWEI_KERNEL
-#if (defined(CONFIG_SERIAL_MSM_HS) && defined(HUAWEI_BT_BLUEZ_VER30))
+#if (defined(CONFIG_SERIAL_MSM_HS) && defined(CONFIG_HUAWEI_BT_WCN2243))
 static struct msm_serial_hs_platform_data msm_uart_dm1_pdata = {
 	.inject_rx_on_wakeup	= 1,
 	.rx_to_inject		= 0xFD,
@@ -476,16 +476,16 @@ u32 msm7627a_power_collapse_latency(enum msm_pm_sleep_mode mode)
 	switch (mode) {
 	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE:
 		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE].latency;
-		
+
 	case MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN:
 		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_POWER_COLLAPSE_NO_XO_SHUTDOWN].latency;
-		
+
 	case MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT:
 		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_RAMP_DOWN_AND_WAIT_FOR_INTERRUPT].latency;
-		
+
 	case MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT:
 		return msm7x27a_pm_data[MSM_PM_SLEEP_MODE_WAIT_FOR_INTERRUPT].latency;
-		
+
 	default:
 		return 0;
 	}
@@ -730,8 +730,8 @@ static void lcdc_hw_gpio_init(void)
 		if (get_hw_lcd_ctrl_bl_type() == CTRL_BL_BY_MSM)
 		{
 			pmapp_disp_backlight_init();
-		}		
-	
+		}
+
 		lcdc_gpio_initialized = 1;
 	}
 	return;
@@ -750,7 +750,7 @@ fail_gpio4:
 static uint32_t lcdc_gpio_table[] = {
 	GPIO_CFG(GPIO_OUT_38, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(GPIO_OUT_39, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
-	GPIO_CFG(GPIO_IN_36, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),	
+	GPIO_CFG(GPIO_IN_36, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
 	GPIO_CFG(GPIO_OUT_36, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 	GPIO_CFG(GPIO_OUT_31, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA),
 };
@@ -794,7 +794,7 @@ static int lcd_panel_spi_gpio_num[] = {
 	GPIO_IN_36,/* spi_sdi */
 	GPIO_OUT_36,/* spi_sdoi */
 	GPIO_OUT_31/* LCD reset */
-   
+
 
 };
 static struct msm_panel_common_pdata lcdc_hw_panel_data = {
@@ -802,7 +802,7 @@ static struct msm_panel_common_pdata lcdc_hw_panel_data = {
 	.gpio_num	  = lcd_panel_spi_gpio_num,
 };
 /*add three new LCD device*/
-static struct platform_device lcdc_hx8357b_panel_device = 
+static struct platform_device lcdc_hx8357b_panel_device =
 {
     .name   = "lcdc_hx8357b_hvga",
     .id     = 0,
@@ -811,7 +811,7 @@ static struct platform_device lcdc_hx8357b_panel_device =
     }
 };
 
-static struct platform_device lcdc_hx8357c_panel_device = 
+static struct platform_device lcdc_hx8357c_panel_device =
 {
     .name   = "lcdc_hx8357c_hvga",
     .id     = 0,
@@ -819,7 +819,7 @@ static struct platform_device lcdc_hx8357c_panel_device =
         .platform_data = &lcdc_hw_panel_data,
     }
 };
-static struct platform_device lcdc_truly_r61529_panel_device = 
+static struct platform_device lcdc_truly_r61529_panel_device =
 {
     .name   = "lcdc_truly_r61529_hvga",
     .id     = 0,
@@ -827,7 +827,7 @@ static struct platform_device lcdc_truly_r61529_panel_device =
         .platform_data = &lcdc_hw_panel_data,
     }
 };
-static struct platform_device lcdc_nt35410_panel_device = 
+static struct platform_device lcdc_nt35410_panel_device =
 {
     .name   = "lcdc_nt35410_hvga",
     .id     = 0,
@@ -838,9 +838,9 @@ static struct platform_device lcdc_nt35410_panel_device =
 /* add the hx8347d_chimei device */
 static struct platform_device lcdc_hx8347d_panel_device = {
 	.name   = "lcdc_hx8347d_qvga",
-	.id     = 0,	
+	.id     = 0,
 	.dev    = {
-		.platform_data = &lcdc_hw_panel_data,	
+		.platform_data = &lcdc_hw_panel_data,
 	}
 };
 static struct platform_device lcdc_hx8347g_panel_device = {
@@ -948,7 +948,7 @@ static struct snd_endpoint snd_endpoints_list[] = {
 	SND(CURRENT, 0x7FFFFFFE),
 	/* add new device for FM AUX_PGA path */
 	SND(FM_RADIO_STEREO_HEADSET, 29),
-	SND(FM_RADIO_SPEAKER_PHONE, 30),	
+	SND(FM_RADIO_SPEAKER_PHONE, 30),
 	SND(FM_ANALOG_STEREO_HEADSET, 35),
 	SND(FM_ANALOG_STEREO_HEADSET_CODEC, 36),
 	/* add new device for 2nd mic MMI test*/
@@ -961,7 +961,7 @@ static struct snd_endpoint snd_endpoints_list[] = {
 	SND(HEADSET_MAINMIC, 42),
 	SND(HEADSET_SECMIC, 43),
 	SND(HEADSET_HEADSETMIC, 44),
-	 
+
 };
 #undef SND
 
@@ -1206,10 +1206,10 @@ int aps9900_gpio_config_interrupt(void)
 {
     int gpio_config = 0;
     int ret = 0;
-  
+
     gpio_config = GPIO_CFG(MSM_7X27A_APS9900_INT, 0, GPIO_CFG_INPUT,GPIO_CFG_PULL_UP, GPIO_CFG_2MA);
     ret = gpio_tlmm_config(gpio_config, GPIO_CFG_ENABLE);
-    return ret; 
+    return ret;
 }
 
 static struct aps9900_hw_platform_data aps9900_hw_data = {
@@ -1295,15 +1295,13 @@ static struct platform_device *surf_ffa_devices[] __initdata = {
 #endif
 
 	&msm_kgsl_3d0,
-/* for WCN2243 */
-#if defined(CONFIG_BT) && defined(HUAWEI_BT_BLUEZ_VER30)
+#if defined(CONFIG_BT) && defined(CONFIG_HUAWEI_BT_WCN2243)
 	&msm_bt_power_device,
 #endif
 
-/* for BCM_4330 */
-#if defined(CONFIG_BT) && defined(HUAWEI_BT_BTLA_VER30)
+#if defined(CONFIG_BT) && defined(CONFIG_HUAWEI_BT_BCM43XX)
     &msm_bt_power_device,
-    &msm_bluesleep_device,	
+    &msm_bluesleep_device,
 #endif
 
 /* default  */
@@ -1346,14 +1344,14 @@ early_param("pmem_audio_size", pmem_audio_size_setup);
 static void __init msm_msm7x2x_allocate_memory_regions(void)
 {
 #ifdef CONFIG_FRAMEBUF_SELF_ADAPT
-	__u32 framebuf_addr = 0; 
+	__u32 framebuf_addr = 0;
 	__u32 framebuf_size = 0;
 
 	/*get framebuffer address and size*/
 	get_frame_buffer_mem_region(&framebuf_addr, &framebuf_size);
 	msm_fb_resources[0].start = framebuf_addr;
 	msm_fb_resources[0].end = framebuf_addr + framebuf_size -1;
-	
+
 	pr_info("allocating 0x%x bytes at 0x%x for framebuffer\n", framebuf_size, framebuf_addr);
 #else
 	void *addr;
@@ -1447,7 +1445,7 @@ int i2c_power(void)
 {
 #if 0
 	int rc = 0;
-	
+
 	vreg_s3 = vreg_get(NULL, "s3");
 	if(IS_ERR(vreg_s3))
 	{
@@ -1463,11 +1461,11 @@ int i2c_power(void)
 	}
 
 	rc = vreg_enable(vreg_s3);
-	if (rc) 
+	if (rc)
 	{
 		pr_err("%s:s3 power init failed \n", __func__);
 	}
-	
+
 err_power_fail:
 	return rc;
 #endif
@@ -1710,15 +1708,15 @@ static int dsi_gpio_initialized;
 
 static int mipi_dsi_panel_power(int on)
 {
-	if (!dsi_gpio_initialized) {	
+	if (!dsi_gpio_initialized) {
 		if (get_hw_lcd_ctrl_bl_type() == CTRL_BL_BY_MSM)
 		{
 			pmapp_disp_backlight_init();
 		}
-		
+
 		dsi_gpio_initialized = 1;
 	}
-	
+
 	return 0;
 }
 #endif
@@ -1791,17 +1789,17 @@ int power_switch(int pm)
 {
 #if 0
 	int rc = 0;
-	
+
 	if (IC_PM_ON == pm)
 	{
-		
+
 		vreg_l12 = vreg_get(NULL,"gp2");
-		if (IS_ERR(vreg_l12)) 
+		if (IS_ERR(vreg_l12))
 		{
 			pr_err("%s:l12 power init get failed\n", __func__);
 			goto err_power_fail;
 		}
-		
+
 		rc = vreg_set_level(vreg_l12, 2850);
 		if(rc)
 		{
@@ -1809,14 +1807,14 @@ int power_switch(int pm)
 			goto err_power_fail;
 		}
 
-		
+
 		rc = vreg_enable(vreg_l12);
-		if (rc) 
+		if (rc)
 		{
 			pr_err("%s:l12 power init failed \n", __func__);
 		}
 
-		mdelay(50);     
+		mdelay(50);
 
 	}
 	else if(IC_PM_OFF == pm)
@@ -1830,10 +1828,10 @@ int power_switch(int pm)
 			}
 		}
 	}
-	else 
+	else
 	{
 		rc = -EPERM;
-		pr_err("%s:l12 power switch not support yet!\n", __func__);	
+		pr_err("%s:l12 power switch not support yet!\n", __func__);
 	}
 err_power_fail:
 	return rc;
@@ -1844,9 +1842,9 @@ err_power_fail:
 int touch_gpio_config_interrupt(void)
 {
 	gpio_request(MSM_7X27A_TOUCH_INT_PIN, "TOUCH_INT");
-	
-	return gpio_tlmm_config(GPIO_CFG(MSM_7X27A_TOUCH_INT_PIN, 
-						0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, 
+
+	return gpio_tlmm_config(GPIO_CFG(MSM_7X27A_TOUCH_INT_PIN,
+						0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP,
 						GPIO_CFG_2MA), GPIO_CFG_ENABLE);
 }
 
@@ -1856,15 +1854,15 @@ int touch_reset(void)
 	int ret = 0;
 
 	gpio_request(MSM_7x27A_TOUCH_RESET_PIN, "TOUCH_RESET");
-	
-	ret = gpio_tlmm_config(GPIO_CFG(MSM_7x27A_TOUCH_RESET_PIN, 
-						0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP, 
+
+	ret = gpio_tlmm_config(GPIO_CFG(MSM_7x27A_TOUCH_RESET_PIN,
+						0, GPIO_CFG_OUTPUT, GPIO_CFG_PULL_UP,
 						GPIO_CFG_2MA), GPIO_CFG_ENABLE);
-	
+
 	ret = gpio_direction_output(MSM_7x27A_TOUCH_RESET_PIN, 1);
 	mdelay(5);
 	ret = gpio_direction_output(MSM_7x27A_TOUCH_RESET_PIN, 0);
-	mdelay(10);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+	mdelay(10);
 	ret = gpio_direction_output(MSM_7x27A_TOUCH_RESET_PIN, 1);
 	mdelay(50);//must more than 10ms.
 
@@ -1875,7 +1873,7 @@ int touch_reset(void)
 int get_touch_reset_pin(void)
 {
 	int ret = MSM_7x27A_TOUCH_RESET_PIN;
-	
+
 	return ret;
 }
 
@@ -1890,25 +1888,25 @@ void set_touch_probe_flag(int detected)
 	{
 		atomic_set(&touch_detected_yet, 0);
 	}
-	
+
 	return;
 }
 
 int read_touch_probe_flag(void)
-{	
+{
 	return atomic_read(&touch_detected_yet);
 }
 
 /*this function get the tp  resolution*/
 static int get_phone_version(struct tp_resolution_conversion *tp_resolution_type)
-{	
+{
 	/*move touch_reset function to outside */
 	if (machine_is_msm7x27a_U8815() ||
 	    machine_is_msm7x27a_C8820() ||
 		machine_is_msm7x27a_C8825D() )
 	{
 		tp_resolution_type->lcd_x = LCD_X_WVGA;
-		tp_resolution_type->lcd_y = LCD_Y_WVGA;   
+		tp_resolution_type->lcd_y = LCD_Y_WVGA;
 		tp_resolution_type->lcd_all = LCD_ALL_WVGA_4INCHTP;
 	}
 	/* add U8655_EMMC, use the u8655 configuration */
@@ -1917,38 +1915,38 @@ static int get_phone_version(struct tp_resolution_conversion *tp_resolution_type
 	         machine_is_msm7x27a_U8661())
 	{
 		tp_resolution_type->lcd_x = LCD_X_HVGA;
-		tp_resolution_type->lcd_y = LCD_Y_HVGA;   
+		tp_resolution_type->lcd_y = LCD_Y_HVGA;
 		tp_resolution_type->lcd_all = LCD_ALL_HVGA_35INCHTP;
 	}
 	/* Add M660 */
 	else if (machine_is_msm7x27a_M660())
 	{
 		tp_resolution_type->lcd_x = LCD_X_HVGA;
-		tp_resolution_type->lcd_y = LCD_Y_HVGA;   
+		tp_resolution_type->lcd_y = LCD_Y_HVGA;
 		tp_resolution_type->lcd_all = LCD_ALL_HVGA_32INCHTP;
 	}
     else if (machine_is_msm7x27a_U8185())
     {
         tp_resolution_type->lcd_x = LCD_X_QVGA;
-		tp_resolution_type->lcd_y = LCD_Y_QVGA;   
+		tp_resolution_type->lcd_y = LCD_Y_QVGA;
 		tp_resolution_type->lcd_all = LCD_ALL_QVGA;
     }
     else if (machine_is_msm7x27a_C8668D())
     {
         tp_resolution_type->lcd_x = LCD_X_HVGA;
-        tp_resolution_type->lcd_y = LCD_Y_HVGA;   
-        tp_resolution_type->lcd_all = LCD_ALL_HVGA_35INCHTP;    	
+        tp_resolution_type->lcd_y = LCD_Y_HVGA;
+        tp_resolution_type->lcd_all = LCD_ALL_HVGA_35INCHTP;
     }
 	else
 	{
 		tp_resolution_type->lcd_x = LCD_X_FWVGA;
-		tp_resolution_type->lcd_y = LCD_Y_FWVGA;   
+		tp_resolution_type->lcd_y = LCD_Y_FWVGA;
 		tp_resolution_type->lcd_all = LCD_ALL_FWVGA;
 	}
 	return 1;
 }
 
-static struct touch_hw_platform_data touch_hw_data = 
+static struct touch_hw_platform_data touch_hw_data =
 {
 	.touch_power = power_switch,
 	.touch_gpio_config_interrupt = touch_gpio_config_interrupt,
@@ -1965,7 +1963,7 @@ static int pn544_ven_reset(void)
 {
 	int ret=0;
 	int gpio_config=0;
-	
+
 	gpio_config = GPIO_CFG(GPIO_NFC_VEN, 0, GPIO_CFG_OUTPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA);
 	ret = gpio_tlmm_config(gpio_config, GPIO_CFG_ENABLE);
 	ret = gpio_request(GPIO_NFC_VEN, "gpio 113 for NFC pn544");
@@ -1998,7 +1996,7 @@ static int pn544_fw_download_pull_down(void)
 	mdelay(5);
 	gpio_set_value(GPIO_NFC_LOAD, 0);
 	mdelay(5);
-	return 0;	
+	return 0;
 }
 
 static int pn544_fw_download_pull_high(void)
@@ -2026,7 +2024,7 @@ static int pn544_clock_output_mode_ctrl(void)
 	return 0;
 }
 
-static struct pn544_nfc_platform_data pn544_hw_data = 
+static struct pn544_nfc_platform_data pn544_hw_data =
 {
 	.pn544_ven_reset = pn544_ven_reset,
 	.pn544_interrupt_gpio_config = pn544_interrupt_gpio_config,
@@ -2037,7 +2035,7 @@ static struct pn544_nfc_platform_data pn544_hw_data =
 };
 
 #endif
-static struct i2c_board_info msm7x27a_i2c_board_info[] __initdata = 
+static struct i2c_board_info msm7x27a_i2c_board_info[] __initdata =
 {
 #ifdef CONFIG_HUAWEI_MELFAS_TOUCHSCREEN
 	{
@@ -2070,21 +2068,21 @@ static struct i2c_board_info msm7x27a_i2c_board_info[] __initdata =
 		I2C_BOARD_INFO("adp5587", 0x34),
 		.irq = MSM_GPIO_TO_INT(40)
 	},
-#endif 
+#endif
 #ifdef CONFIG_HUAWEI_FEATURE_SENSORS_ACCELEROMETER_MMA8452
     {
         I2C_BOARD_INFO("gs_mma8452", 0x38 >> 1),
         .platform_data = &gs_mma8452_platform_data,
         .irq = MSM_GPIO_TO_INT(19)    //MEMS_INT1
     },
-#endif	
+#endif
 /*fack address,because IIC is interrupt with bluetooth*/
 #ifdef CONFIG_HUAWEI_FEATURE_SENSORS_AK8975
     {
         I2C_BOARD_INFO("akm8975", 0x0D),//7 bit addr, no write bit
         .irq = MSM_GPIO_TO_INT(18)
     },
-#endif 
+#endif
 #ifdef CONFIG_HUAWEI_FEATURE_SENSORS_ACCELEROMETER_ST_LIS3XH
     {
         I2C_BOARD_INFO("gs_st_lis3xh", 0x30 >> 1),
@@ -2098,22 +2096,22 @@ static struct i2c_board_info msm7x27a_i2c_board_info[] __initdata =
 	 .platform_data = &gs_adi346_platform_data,
         .irq = MSM_GPIO_TO_INT(19)    //MEMS_INT1
     },
-#endif 
+#endif
 #ifdef CONFIG_HUAWEI_FEATURE_SENSORS_ACCELEROMETER_KXTIK1004
-	{ 
+	{
 	    I2C_BOARD_INFO("gs_kxtik", 0x1E >> 1),  /* actual address 0x0F*/
 	.platform_data = &gs_kxtik_platform_data,
 	    .irq = MSM_GPIO_TO_INT(19)     //MEMS_INT1
 	},
 #endif
 #ifdef CONFIG_HUAWEI_FEATURE_PROXIMITY_EVERLIGHT_APS_12D
-	{   
-		I2C_BOARD_INFO("aps-12d", 0x88 >> 1),  
+	{
+		I2C_BOARD_INFO("aps-12d", 0x88 >> 1),
 	},
 #endif
 
 #ifdef CONFIG_HUAWEI_FEATURE_PROXIMITY_EVERLIGHT_APS_9900
-	{   
+	{
 		I2C_BOARD_INFO("aps-9900", 0x39),
 	    .irq = MSM_GPIO_TO_INT(MSM_7X27A_APS9900_INT),
         .platform_data = &aps9900_hw_data,
@@ -2384,7 +2382,7 @@ static ssize_t synaptics_virtual_keys_show(struct kobject *kobj,
 			       struct kobj_attribute *attr, char *buf)
 {
         memcpy( buf, buf_virtualkey, buf_vkey_size );
-		return buf_vkey_size; 
+		return buf_vkey_size;
 }
 
 static struct kobj_attribute synaptics_virtual_keys_attr = {
@@ -2422,7 +2420,7 @@ static void __init virtualkeys_init(void)
         			__stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":57:850:100:80"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":240:850:100:80"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":423:850:100:80"
-        		   "\n"); 
+        		   "\n");
     }
     if (machine_is_msm7x27a_C8820()
         || machine_is_msm7x27a_C8825D())
@@ -2431,7 +2429,7 @@ static void __init virtualkeys_init(void)
         			__stringify(EV_KEY) ":" __stringify(KEY_BACK)  ":57:850:100:80"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":240:850:100:80"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_MENU) ":423:850:100:80"
-        		   "\n"); 
+        		   "\n");
     }
 	/* add U8655_EMMC, use the u8655 configuration */
     //add C8655 T0, use the u8655 configuration
@@ -2442,7 +2440,7 @@ static void __init virtualkeys_init(void)
         			__stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":30:510:60:50"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":165:510:100:50"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":290:510:60:50"
-        		   "\n"); 
+        		   "\n");
     }
     else if (machine_is_msm7x27a_U8655_EMMC())
     {
@@ -2454,7 +2452,7 @@ static void __init virtualkeys_init(void)
         		          ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":115:510:80:50"
         		          ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":205:510:80:50"
         		          ":" __stringify(EV_KEY) ":" __stringify(KEY_SEARCH) ":290:510:60:50"
-        		          "\n"); 
+        		          "\n");
     	}
     	else
     	{
@@ -2462,7 +2460,7 @@ static void __init virtualkeys_init(void)
         		          __stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":30:510:60:50"
         		          ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":165:510:100:50"
         		          ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":290:510:60:50"
-        		          "\n"); 
+        		          "\n");
     	}
     }
 	else if (machine_is_msm7x27a_M660())
@@ -2471,7 +2469,7 @@ static void __init virtualkeys_init(void)
         			__stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":30:505:60:40"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":165:505:100:40"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":290:505:60:40"
-        		   "\n"); 
+        		   "\n");
     }
 	else if ( machine_is_msm7x27a_C8655_NAND())
     {
@@ -2479,7 +2477,7 @@ static void __init virtualkeys_init(void)
         	       __stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":30:520:60:50"
         	       ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":165:520:100:50"
         	       ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":290:520:60:50"
-        		   "\n"); 
+        		   "\n");
     }
 	/* Modify the vitrual key areas */
     else if (machine_is_msm7x27a_U8185())
@@ -2497,7 +2495,7 @@ static void __init virtualkeys_init(void)
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_MENU)   ":118:520:70:60"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK)   ":205:520:70:60"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_SEARCH) ":285:520:70:60"
-        		   "\n");            	
+        		   "\n");
     }
 	/*change the order of the virtual key*/
     else if (machine_is_msm7x27a_C8668D())
@@ -2506,17 +2504,17 @@ static void __init virtualkeys_init(void)
         	       __stringify(EV_KEY) ":" __stringify(KEY_BACK)  ":30:520:60:50"
         	       ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":160:520:100:50"
         	       ":" __stringify(EV_KEY) ":" __stringify(KEY_MENU) ":290:520:60:50"
-        		   "\n"); 
+        		   "\n");
     }
-	else 
+	else
     {
     	buf_vkey_size = sprintf(buf_virtualkey,
         			__stringify(EV_KEY) ":" __stringify(KEY_MENU)  ":57:840:100:70"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_HOME)   ":240:840:100:70"
         		   ":" __stringify(EV_KEY) ":" __stringify(KEY_BACK) ":423:840:100:70"
-        		   "\n"); 
+        		   "\n");
     }
-    
+
     properties_kobj = kobject_create_and_add("board_properties", NULL);
 	if (properties_kobj)
 		ret = sysfs_create_group(properties_kobj,
@@ -2539,7 +2537,7 @@ static void __init msm7x2x_init(void)
 	msm7x27a_cfg_uart2dm_serial();
 /* The following config was used for WCN2243 only. */
 #ifdef CONFIG_HUAWEI_KERNEL
-#if (defined(CONFIG_SERIAL_MSM_HS) && defined(HUAWEI_BT_BLUEZ_VER30))
+#if (defined(CONFIG_SERIAL_MSM_HS) && defined(CONFIG_HUAWEI_BT_WCN2243))
 	msm_uart_dm1_pdata.wakeup_irq = gpio_to_irq(UART1DM_RX_GPIO);
 	msm_device_uart_dm1.dev.platform_data = &msm_uart_dm1_pdata;
 #endif
@@ -2566,8 +2564,7 @@ static void __init msm7x2x_init(void)
 		#ifndef CONFIG_HUAWEI_CAMERA
 		msm7x27a_cfg_smsc911x();
 		#endif
-		#if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
-                /*before bt probe, config the bt_wake_msm gpio*/
+		#if (defined(CONFIG_HUAWEI_BT_BCM43XX) && defined(CONFIG_HUAWEI_KERNEL))
                 bt_wake_msm_config();
         #endif
 	platform_add_devices(msm_footswitch_devices,
@@ -2591,10 +2588,10 @@ static void __init msm7x2x_init(void)
 #if defined(CONFIG_I2C) && defined(CONFIG_GPIO_SX150X)
 	register_i2c_devices();
 #endif
-#if (defined(HUAWEI_BT_BLUEZ_VER30) || (!defined(CONFIG_HUAWEI_KERNEL)))
+#if (defined(CONFIG_HUAWEI_BT_WCN2243) || (!defined(CONFIG_HUAWEI_KERNEL)))
 	msm7627a_bt_power_init();
 #endif
-#if (defined(HUAWEI_BT_BTLA_VER30) && defined(CONFIG_HUAWEI_KERNEL))
+#if (defined(CONFIG_HUAWEI_BT_BCM43XX) && defined(CONFIG_HUAWEI_KERNEL))
 	bt_bcm4330_power_init();
 #endif
 #ifndef CONFIG_HUAWEI_KERNEL
@@ -2610,7 +2607,7 @@ static void __init msm7x2x_init(void)
 		ARRAY_SIZE(atmel_ts_i2c_info));
 
 #else
-	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID, 
+	i2c_register_board_info(MSM_GSBI1_QUP_I2C_BUS_ID,
 		msm7x27a_i2c_board_info,
 		ARRAY_SIZE(msm7x27a_i2c_board_info));
 #endif
@@ -2622,12 +2619,12 @@ static void __init msm7x2x_init(void)
      * so use keypad_device_default ,
      * del 4 row,
      * for tending to promote code unity.
-    */ 
+    */
     if(machine_is_msm7x27a_U8185())
     {
         platform_device_register(&keypad_device_u8185);
     }
-	else 
+	else
     {
         platform_device_register(&keypad_device_default);
     }
@@ -2672,8 +2669,8 @@ static struct resource hw_extern_sdcard_resources[] = {
     },
 };
 
-/* 
- * Define the 'hw_extern_sdcard' device node for MMI sdcard test to  
+/*
+ * Define the 'hw_extern_sdcard' device node for MMI sdcard test to
  * judge if the sd card inserted.
  */
 static struct platform_device hw_extern_sdcard_device = {
@@ -2689,8 +2686,8 @@ static struct resource hw_extern_sdcardMounted_resources[] = {
     },
 };
 
-/* 
- * Define the 'hw_extern_sdcardMounted' device node for MMI sdcard test to  
+/*
+ * Define the 'hw_extern_sdcardMounted' device node for MMI sdcard test to
  * judge if the sd card mounted.
  */
 static struct platform_device hw_extern_sdcardMounted_device = {
@@ -2700,8 +2697,8 @@ static struct platform_device hw_extern_sdcardMounted_device = {
     .resource       = hw_extern_sdcardMounted_resources,
 };
 
-/* 
- * Add the device nodes 'hw_extern_sdcard' and 'hw_extern_sdcardMounted' in /dev. 
+/*
+ * Add the device nodes 'hw_extern_sdcard' and 'hw_extern_sdcardMounted' in /dev.
  * It is used by MMI sdcard test.
  */
 int __init hw_extern_sdcard_add_device(void)
