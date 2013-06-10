@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -34,6 +34,13 @@
 #define GENLOCK_LOG_ERR(fmt, args...) \
 printk("genlock: %s: " fmt, __func__, ##args)
 //pr_err("genlock: %s: " fmt, __func__, ##args)
+
+/* The genlock magic stored in the kernel private data is used to protect
+ * against the possibility of user space passing a valid fd to a
+ * non-genlock file for genlock_attach_lock()
+ */
+#define GENLOCK_MAGIC_OK  0xD2EAD10C
+#define GENLOCK_MAGIC_BAD 0xD2EADBAD
 
 /* The genlock magic stored in the kernel private data is used to protect
  * against the possibility of user space passing a valid fd to a
